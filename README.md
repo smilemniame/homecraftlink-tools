@@ -22,3 +22,7 @@ Results depend on the source page and the content currently loaded. They may dif
 ## Dropdown documentation
 
 See [Monthly snapshots and dropdown filters](table-demo/docs/DROPDOWNS.md) for control behavior, CSV formats and differences between the demo and the full service.
+
+## Importer 1 documentation
+
+See [Gate 1 / Importer 1 — domain lists](docs/IMPORTER1.md) for importing domains, selecting rows, copying and CSV export.
