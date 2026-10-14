@@ -54,3 +54,15 @@ Results can change between runs. A row may show a 200 badge alongside a title de
 This guide is based on the owner's supplied `top_sites.html`, `main.20250720.js` and Importer 1 screenshot reviewed on 14 October 2026. It documents the inspected frontend behavior; no new end-to-end importer test was performed for this documentation.
 
 The Open quicklinks and Download quicklinks controls are visible in the HTML, but their handlers were not found in the supplied JavaScript. Their behavior is outside the scope of this guide. The separate dropdown training example is not part of Importer 1 documentation.
+
+## Copy links without opening the importer
+
+Use the [copy-only bookmarklet](../bookmarklets/copy-links.js) to collect links without opening HomeCraftLink automatically.
+
+1. Open the linked file and click Raw.
+2. Copy the entire line, including the `javascript:` prefix.
+3. Create a browser bookmark named "Copy links" and paste the code into its URL field.
+4. Open a source page and click the bookmark.
+5. Open Gate 1 and paste with Ctrl+V.
+
+The bookmark copies unique HTTP/HTTPS link addresses from the currently loaded page, including navigation and external links. Importer 1 then extracts domains, so several links may produce the same domain. Clipboard permission may be required.
