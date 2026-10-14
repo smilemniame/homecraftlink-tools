@@ -18,3 +18,7 @@ The first demo is available: [HomeCraftLink Table Demo](table-demo/README.md), w
 ## Working with live content
 
 Results depend on the source page and the content currently loaded. They may differ from examples, include unexpected items, or omit content that is unavailable to collect.
+
+## Dropdown documentation
+
+See [Monthly snapshots and dropdown filters](docs/DROPDOWNS.md) for control behavior, CSV formats and differences between the demo and the full service.
