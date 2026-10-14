@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.log
+*.pid
+*.before_global_columns
+*.before_demo_label
+STAGE_STATUS.md
