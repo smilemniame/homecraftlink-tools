@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top {{ total_rows }} domains</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    >
+
+	<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.1/css/flag-icons.min.css">
+
+
+
+<style>
+	html {
+		scrollbar-gutter: stable;
+	}
+
+	/* ================================
+	   GLOBAL BLACK SYSTEM
+	================================ */
+	body {
+		background: #000000 !important;
+		color: #ffffff !important;
+	}
+
+	.card,
+	.border-top,
+	.border-bottom,
+	[data-pager],
+	.card-footer {
+		background: #111111 !important;
+		border-color: #222222 !important;
+	}
+
+	/* ================================
+	   SCROLLBARS
+	================================ */
+	::-webkit-scrollbar { width: 6px; }
+	::-webkit-scrollbar-track { background: transparent; }
+	::-webkit-scrollbar-thumb {
+		background: rgba(120,120,120,0.35);
+		border-radius: 10px;
+	}
+	::-webkit-scrollbar-thumb:hover { background: rgba(120,120,120,0.6); }
+
+	/* ================================
+	   FAST TABLE
+	================================ */
+	#fastTable {
+		color: #e0e0e0;
+	}
+	#fastTable thead th {
+		background: #111111 !important;
+		color: #fff;
+		border-color: #222222 !important;
+	}
+	#fastTable tbody td {
+		background: #111111 !important;
+		border-color: #222222 !important;
+		color: #e0e0e0 !important;
+		padding-top: 0.45rem;
+		padding-bottom: 0.45rem;
+	}
+	#fastTable tbody tr:nth-child(even) td {
+		background: #0e0e0e !important;
+	}
+	/* hover całkowicie wyłączony */
+	#fastTable tbody tr:hover,
+	#fastTable tbody tr:hover td,
+	.analysis-row table tbody tr:hover {
+		background: #111111 !important;
+	}
+	/* analysis row ma własne tło */
+	.analysis-row td {
+		background: #252525 !important;
+	}
+
+	/* ================================
+	   TITLE CELL — ellipsis + marquee
+	================================ */
+	.title-cell {
+		max-width: 420px;
+		font-size: 0.9em;
+		white-space: nowrap !important;
+		overflow: hidden !important;
+		text-overflow: ellipsis !important;
+		vertical-align: middle;
+		color: #cfcfcf;
+		transition: color 0.3s;
+	}
+	.title-cell .title-text {
+		display: inline-block;
+		white-space: nowrap;
+	}
+	.title-cell:hover .title-text {
+		animation-name: bounceScrollTitle;
+		animation-timing-function: linear;
+		animation-iteration-count: infinite;
+	}
+	@keyframes bounceScrollTitle {
+		0%   { transform: translateX(0); }
+		50%  { transform: translateX(var(--scroll-end)); }
+		100% { transform: translateX(0); }
+	}
+	.title-cell.loading {
+		color: inherit;
+		font-style: italic;
+	}
+
+	/* ================================
+	   RANK, STATUS, CHECKBOX COLUMNS
+	================================ */
+	.rank-col { width: 80px; color: #888; }
+	.status-col { width: 80px; }
+	.checkbox-col { width: 32px; }
+	tr.row-selected { background-color: rgba(13, 202, 240, 0.08); }
+
+	/* ================================
+	   FAVICON
+	================================ */
+	#fastTable .favicon {
+		width: 18px;
+		height: 18px;
+		border-radius: 4px;
+		vertical-align: middle;
+	}
+	#fastTable td:nth-child(3) a {
+		color: #7dd3fc;
+		text-decoration: none;
+	}
+	#fastTable td:nth-child(3) a:hover { text-decoration: underline !important; }
+
+	/* ================================
+	   STATUS BADGE
+	================================ */
+	.status-cell .badge {
+		font-size: .8rem;
+		padding: .35em .5em;
+		background: #444;
+	}
+
+	/* ================================
+	   ANALYZE BUTTON
+	================================ */
+	.analyzeBtn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		padding: 2px;
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		user-select: none;
+		position: relative;
+		z-index: 5;
+		pointer-events: auto;
+	}
+	.analyzeBtn:focus { outline: none; }
+	.analyzeBtn i {
+		transition: transform 0.2s ease;
+		color: #cfcfcf !important;
+	}
+	.analyzeBtn.expanded i { transform: rotate(180deg); }
+	.analyze-btn {
+		opacity: .7;
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+	}
+	.analyze-btn:hover { opacity: 1; }
+	.analyze-btn:focus,
+	.analyze-btn:active {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	/* ================================
+	   ANALYSIS ROW
+	================================ */
+	.analysis-row td {
+		background-color: #252525 !important;
+		padding: 0 !important;
+		white-space: normal !important;
+	}
+	.analysis-row,
+	.analysis-row * {
+		white-space: normal !important;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
+	.analysis-row a {
+		white-space: normal !important;
+		word-break: break-all;
+		overflow-wrap: anywhere;
+	}
+	.analysis-row ul li,
+	.analysis-row ul li a {
+		white-space: normal !important;
+		word-break: break-all;
+		overflow-wrap: anywhere;
+	}
+	.analysis-row pre,
+	.analysis-row code {
+		white-space: pre-wrap;
+		word-break: break-all;
+		overflow-wrap: anywhere;
+		font-size: 0.85em;
+	}
+	.analysis-row .analysis-box {
+		background-color: #2d2d2d !important;
+		border: 1px solid #dee2e6 !important;
+		border-radius: .25rem;
+	}
+	.analysis-row .table,
+	.analysis-row .table > :not(caption) > * > * {
+		border: 1px solid #dee2e6 !important;
+	}
+	.analysis-row .table tbody th {
+		color: #fff !important;
+		font-weight: 600;
+		background-color: #2d2d2d !important;
+		border-right: 1px solid #dee2e6 !important;
+		vertical-align: middle;
+		padding: .35rem .5rem !important;
+	}
+	.analysis-row .table tbody td {
+		color: #e0e0e0 !important;
+		background-color: #252525 !important;
+		vertical-align: middle;
+		padding: .35rem .5rem !important;
+	}
+	.analysis-table-wrapper {
+		padding: .35rem .35rem .25rem .35rem !important;
+	}
+	.analysis-actions {
+		padding: .35rem .5rem !important;
+		background: rgba(255,255,255,0.02);
+		border-top: 1px solid rgba(222,226,230,0.35) !important;
+	}
+	.analysis-row .btn-outline-secondary,
+	.analysis-row .btn-outline-primary {
+		color: #fff !important;
+		border-color: #dee2e6 !important;
+	}
+	.analysis-row .btn-outline-secondary:hover,
+	.analysis-row .btn-outline-primary:hover {
+		background-color: #dee2e6 !important;
+		color: #000 !important;
+	}
+
+	/* ANALYSIS GRID */
+	.analysis-grid {
+		display: grid;
+		grid-template-columns: 1.15fr 1fr 1fr;
+		gap: .4rem;
+		padding: .35rem;
+		align-items: stretch;
+	}
+	@media (max-width: 992px) {
+		.analysis-grid { grid-template-columns: 1fr; }
+	}
+	.analysis-panel {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid #dee2e6;
+		border-radius: .25rem;
+		background: #2d2d2d;
+		overflow: hidden;
+	}
+	.analysis-panel-h {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: .25rem .5rem;
+		font-weight: 600;
+		font-size: .8rem;
+		color: #fff;
+		background: #252525;
+		border-bottom: 1px solid #dee2e6;
+	}
+	.analysis-count {
+		font-size: .75rem;
+		color: #cfcfcf;
+		margin-left: .35rem;
+	}
+	.analysis-panel-b {
+		flex: 1;
+		padding: .35rem;
+	}
+	.analysis-links-list {
+		height: 100%;
+		overflow: auto;
+		border: 1px solid rgba(222,226,230,0.35);
+		border-radius: .25rem;
+		padding: .35rem;
+		background: #252525;
+		color: #e0e0e0;
+		font-size: .82rem;
+		white-space: normal;
+		word-break: break-word;
+	}
+	.analysis-actions-inline {
+		display: flex;
+		gap: .25rem;
+	}
+	.analysis-link {
+		display: flex;
+		align-items: center;
+		gap: .35rem;
+		margin-bottom: .15rem;
+	}
+	.analysis-link a {
+		color: #e0e0e0;
+		text-decoration: none;
+		word-break: break-all;
+	}
+	.analysis-link a:hover { text-decoration: underline; }
+	.analysis-favicon {
+		width: 16px;
+		height: 16px;
+		flex: 0 0 auto;
+	}
+
+	/* ================================
+	   TOOLBAR / SEARCH
+	================================ */
+	.fast-toolbar {
+		flex-wrap: wrap;
+		row-gap: .4rem;
+		max-width: 100%;
+	}
+	.fast-toolbar h2 {		
+		font-weight: 700;
+		line-height: 1.2;
+	}
+	.fast-toolbar h2 a {
+		text-decoration: none !important;
+		transition: color 0.2s ease;
+	}
+	.fast-toolbar h2 a:hover {
+		color: #7dd3fc !important;
+	}
+
+	.fast-search-bar {
+		max-width: 420px;
+		flex-shrink: 0;
+	}
+	.fast-search-bar .input-group { width: 100%; }
+	.fast-search-input {
+		width: 100%;
+		background-color: #252525;
+		color: #e0e0e0;
+		border-color: #999;
+		min-width: 220px;
+		flex-shrink: 0;
+	}
+	.fast-search-input::placeholder { color: #888; }
+	.fast-search-input:focus {
+		border-color: #666;
+		box-shadow: none;
+	}
+
+	/* ================================
+	   DROPDOWNS — ULTRA DARK
+	================================ */
+	.dropdown-menu,
+	.dropdown-menu-dark {
+		background: #111111 !important;
+		border: 1px solid #222222 !important;
+		box-shadow: 0 10px 30px rgba(0,0,0,.65) !important;
+		scrollbar-width: thin;
+		scrollbar-color: #f0f0f0 #050505;
+	}
+	.dropdown-menu::-webkit-scrollbar { width: 10px; }
+	.dropdown-menu::-webkit-scrollbar-track { background: #050505; }
+	.dropdown-menu::-webkit-scrollbar-thumb {
+		background: #f0f0f0;
+		border-radius: 6px;
+		border: 2px solid #050505;
+	}
+	.dropdown-menu::-webkit-scrollbar-thumb:hover { background: #ffffff; }
+
+	.dropdown-menu .dropdown-item {
+		color: #e6e6e6 !important;
+		background: transparent !important;
+	}
+	.dropdown-menu .dropdown-item:hover,
+	.dropdown-menu .dropdown-item:focus {
+		background: #202020 !important;
+		color: #ffffff !important;
+	}
+	.dropdown-menu .dropdown-item:active {
+		background: #242424 !important;
+		color: #ffffff !important;
+	}
+	.dropdown-menu .dropdown-item.active {
+		background: #151515 !important;
+		color: #ffffff !important;
+	}
+	.dropdown-menu .dropdown-item.disabled,
+	.dropdown-menu .dropdown-item:disabled,
+	.dropdown-menu .text-muted {
+		color: #9a9a9a !important;
+	}
+	.dropdown-menu .dropdown-divider {
+		border-top: 1px solid #1b1b1b !important;
+	}
+
+	/* ================================
+	   DROPDOWNS — WIDTH
+	================================ */
+	#wordsDropdownMenu,
+	#globalWordsDropdownMenu {
+		width: fit-content !important;
+		min-width: 180px !important;
+		max-width: 320px !important;
+		max-height: 61vh;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+	#prefixDropdown .dropdown-menu {
+		width: 200px !important;
+		max-height: 61vh !important;
+		overflow-y: auto;
+	}
+	#prefixMenu { max-height: 61vh; overflow-y: auto; }
+	#wordsDropdownMenu { max-height: 61vh; overflow-y: auto; }
+	#globalWordsDropdownMenu { max-height: 61vh; overflow-y: auto; }
+	#rankDateMenu { max-height: 61vh; overflow-y: auto; }
+
+	/* word items z licznikami */
+	.dropdown-item.word-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 15px;
+		padding: 0.35rem 0.8rem;
+	}
+	.word-count {
+		font-size: 0.75rem;
+		color: #6c757d;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ================================
+	   CATEGORIES — LEWA STRZAŁKA + SUBMENU
+	================================ */
+	#categoriesDropdownMenu {
+		position: relative;
+		overflow: visible !important;
+		font-size: 0.85rem;
+	}
+	/* ukryj bootstrapową strzałkę */
+	#categoriesDropdownMenu .dropdown-toggle::after { display: none !important; }
+	/* własna strzałka po lewej */
+	#categoriesDropdownMenu .dropdown-toggle {
+		position: relative;
+		padding-left: 1.4rem;
+	}
+	#categoriesDropdownMenu .dropdown-toggle::before {
+		content: "";
+		position: absolute;
+		left: 0.55rem;
+		top: 50%;
+		border-top: 0.3em solid transparent;
+		border-bottom: 0.3em solid transparent;
+		border-right: 0.35em solid currentColor;
+		opacity: 0.75;
+	}
+	#categoriesDropdownMenu .dropdown-toggle:hover::before { opacity: 1; }
+
+	/* submenu zawsze po lewej */
+	#categoriesDropdownMenu .dropdown-submenu {
+		position: static;
+	}
+	#categoriesDropdownMenu .dropdown-submenu > .dropdown-menu {
+		position: absolute;
+		bottom: 0;
+		right: 100%;
+		left: auto;
+		margin-right: 0px;
+		max-height: none;
+		overflow: visible;
+		display: none;
+	}
+	#categoriesDropdownMenu .dropdown-submenu:hover > .dropdown-menu {
+		display: block;
+	}
+
+	#prefixMenu .fi {
+		width: 18px;
+		height: 12px;
+		border-radius: 2px;
+	}
+
+	#prefixMenu .flag-after {
+		margin-left: 6px;
+	}
+
+	/* ================================
+	   PAGER / PAGINATION
+	================================ */
+	[data-pager],
+	.card-footer {
+		background: #111111 !important;
+		color: #e0e0e0;
+		border-color: #333;
+	}
+	[data-pager] label,
+	[data-pager] span {
+		color: #aaa;
+	}
+	[data-pager] .page-link {
+		color: #e0e0e0;
+	}
+	[data-pager] .page-link:hover {
+		background: rgba(13,202,240,0.15);
+	}
+
+	[data-role="page-prev"],
+	[data-role="page-next"] {
+		min-width: 110px;
+		text-align: center;
+		color: #e0e0e0 !important;
+		background: #2b2b2b !important;
+		border: 1px solid #444 !important;
+		border-radius: .25rem;
+	}
+	[data-role="page-prev"]:hover,
+	[data-role="page-next"]:hover {
+		background: rgba(13,202,240,0.15) !important;
+	}
+	[data-role="page-prev"]:active,
+	[data-role="page-next"]:active {
+		background: rgba(13,202,240,0.25) !important;
+	}
+	.pager-arrow {
+		font-size: 1rem;
+		font-weight: 400;
+		min-width: 110px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.pager-right-slot {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-left: auto;
+	}
+	.pager-jump {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-right: 12px;
+	}
+	.pager-jump input.page-input {
+		width: 80px;
+	}
+	.page-input {
+		width: 90px;
+		box-sizing: border-box;
+		font-variant-numeric: tabular-nums;
+	}
+	.page-jump-group { width: 120px; }
+	.page-jump-group .form-control { border-right: none; }
+
+	button.page-link {
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		padding: var(--bs-pagination-padding-y) var(--bs-pagination-padding-x);
+		line-height: var(--bs-pagination-line-height);
+	}
+	button.page-link:hover {
+		background-color: var(--bs-pagination-hover-bg);
+		color: var(--bs-pagination-hover-color);
+	}
+	button.page-link:focus {
+		outline: none;
+		box-shadow: var(--bs-pagination-focus-box-shadow);
+	}
+
+	/* ================================
+	   UKRYTE ELEMENTY
+	================================ */
+	.api-toggle-btn { display: none !important; }
+	label[for="per_page_top"],
+	label[for="per_page_bottom"],
+	#per_page_top,
+	#per_page_bottom {
+		display: none !important;
+	}
+
+	/* ================================
+	   IKONKI COPY/EXPORT
+	================================ */
+	#copySelectedFast {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		outline: none !important;
+		
+	}
+	
+	#copySelectedFast.fast-disabled {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    filter: grayscale(100%);
+	}
+	
+	#copySelectedFast:hover,
+	#copySelectedFast:focus,
+	#copySelectedFast:active {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		outline: none !important;
+	}
+
+	/* ================================
+	   TABLE RESPONSIVE
+	================================ */
+	.table-responsive {
+		max-width: 100%;
+		overflow-x: auto;
+		margin-bottom: 0 !important;
+	}
+	
+	.text-muted {
+		color: #b0b0b0 !important;
+	}
+
+	.fast-toolbar h2 {
+		font-weight: 700;
+		line-height: 1.2;
+	}
+
+	.analyze-btn i {
+		color: #cfcfcf !important;
+		transition: transform 0.2s ease;
+	}
+
+	/* ================================
+	   DATA ATTRIBUTION
+	================================ */
+
+
+.data-attribution {
+    font-size: .72rem;
+    color: #777;
+    white-space: nowrap;
+}
+
+.data-attribution a {
+    color: #999;
+    text-decoration: none;
+}
+
+.data-attribution a:hover {
+    color: #cfcfcf;
+    text-decoration: underline;
+}
+
+/* ================================
+   PRIVACY / DATA NOTICE
+================================ */
+[data-pager] > .d-flex {
+    position: relative;
+}
+
+.privacy-info {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    color: #a88720;
+    cursor: help;
+    outline: none;
+}
+
+.privacy-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: .9rem;
+    border-radius: 50%;
+}
+
+.privacy-info:hover .privacy-info-icon,
+.privacy-info:focus .privacy-info-icon,
+.privacy-info:focus-within .privacy-info-icon {
+    color: #ffc107;
+    background: rgba(255, 193, 7, .10);
+}
+
+.privacy-info-card {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 10050;
+    width: min(460px, calc(100vw - 48px));
+    padding: 12px 14px;
+    color: #d8d8d8;
+    background: rgba(18, 18, 18, .98);
+    border: 1px solid #66551d;
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .55);
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, -4px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    pointer-events: none;
+}
+
+.privacy-info-card strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #ffc107;
+    font-size: .8rem;
+}
+
+.privacy-info:hover .privacy-info-card,
+.privacy-info:focus .privacy-info-card,
+.privacy-info:focus-within .privacy-info-card {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+@media (max-width: 760px) {
+    .privacy-info {
+        display: none;
+    }
+}
+
+	
+</style>
+</head>
+
+<body>
+
+
+{% set active_snapshot = snapshot or (available_snapshots[0] if available_snapshots else '202601') %}
+
+<div class="container-fluid py-0">
+
+<div class="d-flex align-items-center mb-2 gap-3 fast-toolbar">
+
+
+  <div>
+    <h2 class="mb-0">
+		<button id="totalRowsReset"
+				type="button"
+				class="p-0 fw-semibold text-reset text-decoration-none border-0 bg-transparent"
+				style="font: inherit; line-height: inherit; cursor: pointer;">
+		  Total rows <span id="totalRowsValue">{{ total_rows }}</span>
+		</button>
+    </h2>
+  </div>
+
+  <div class="dropdown d-flex align-items-center"
+       id="prefixDropdown"
+       data-snapshot="{{ active_snapshot }}">
+
+    <span class="me-1 text-muted small">~Country</span>
+
+<!-- Country dropdown -->
+<button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+        type="button"
+        data-bs-toggle="dropdown"
+        data-bs-auto-close="outside">
+    Select
+</button>
+
+    <ul class="dropdown-menu dropdown-menu-dark small" id="prefixMenu">
+      <li class="px-3 py-1 text-muted">Loading…</li>
+    </ul>
+  </div>
+
+
+  <!-- TOP WORDS (this table) -->
+  <div class="dropdown d-flex align-items-center"
+       id="wordsDropdownContainer"
+       data-snapshot="{{ active_snapshot }}"
+       data-base-url="{{ url_for('top_sites_fast') }}">
+
+    <span class="me-1 text-muted small">Top names (this)</span>
+
+<!-- Top words dropdown -->
+<button id="wordDropdownBtn"
+      class="btn btn-sm btn-outline-secondary dropdown-toggle"
+      type="button"
+      data-bs-toggle="dropdown"
+      data-bs-auto-close="outside">
+  Select
+</button>
+
+    <ul class="dropdown-menu dropdown-menu-dark small"
+        id="wordsDropdownMenu"
+        >
+      <li class="px-3 py-1 text-muted">Loading…</li>
+    </ul>
+  </div>
+
+
+<!-- TOP NAMES (all tables / global) -->
+<div class="dropdown d-flex align-items-center"
+     id="globalWordsDropdownContainer"
+     data-base-url="{{ url_for('top_sites_fast') }}">
+
+  <span class="me-1 text-muted small">Top names (all)</span>
+
+<!-- Top names dropdown -->
+<button id="globalWordDropdownBtn"
+  class="btn btn-sm btn-outline-secondary dropdown-toggle"
+  type="button"
+  data-bs-toggle="dropdown"
+  data-bs-auto-close="outside">
+  Select
+</button>
+
+  <ul class="dropdown-menu dropdown-menu-dark small"
+      id="globalWordsDropdownMenu"
+      >
+    <li class="px-3 py-1 text-muted">Loading…</li>
+  </ul>
+</div>
+
+<div class="dropdown d-flex align-items-center"
+     id="categoriesDropdownContainer">
+  
+  <span class="me-1 text-muted small">Categories</span>
+
+<!-- Categories dropdown -->
+<button id="categoryDropdownBtn"
+  class="btn btn-sm btn-outline-secondary dropdown-toggle"
+  type="button"
+  data-bs-toggle="dropdown"
+  data-bs-auto-close="outside">
+  Select
+</button>
+
+  <ul class="dropdown-menu dropdown-menu-dark small"
+      id="categoriesDropdownMenu">
+    <li class="px-3 py-1 text-muted">Loading…</li>
+  </ul>
+</div>
+
+</div>
+
+
+		<!-- ───────────────── SEARCH BAR (FAST, like old version) ───────────────── -->
+<div class="px-1 py-2">
+  <form method="post"
+        class="d-flex align-items-center gap-1 fast-search-bar"
+        onsubmit="this.querySelector('input[name=page]')?.value=1">
+
+    <!-- reset paginacji -->
+    <input type="hidden" name="page" value="1">
+
+<div class="input-group input-group-sm">
+  <input
+    type="search"
+    name="q"
+    class="form-control fast-search-input"
+    placeholder="Search domain…"
+    value="{{ request.args.get('q','') }}"
+  >
+  <button class="btn btn-outline-secondary" type="submit">
+    <i class="bi bi-search"></i>
+  </button>
+</div>
+	
+		<!-- Rank-Table-Date dropdown -->
+<div class="dropdown ms-1">
+<!-- Rank date dropdown -->
+<button id="rankDateButton"
+        class="btn btn-sm btn-outline-secondary dropdown-toggle"
+        type="button"
+        data-bs-toggle="dropdown"
+        data-bs-auto-close="outside">
+  <strong id="rankDateLabel">
+    {{ active_snapshot[:4] }}-{{ active_snapshot[4:] }}
+  </strong>
+</button>
+
+  <ul class="dropdown-menu" id="rankDateMenu">
+    {% for snap in available_snapshots %}
+      <li>
+<button type="button"
+   class="dropdown-item {% if snap == active_snapshot %}active{% endif %}"
+   data-table-snapshot="{{ snap }}">
+  {{ snap[:4] }}-{{ snap[4:] }}
+</button>
+
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<button
+  type="button"
+  class="btn btn-sm btn-outline-danger api-toggle-btn"
+  
+>
+  API: OFF
+</button>
+
+		
+  </form>
+</div>
+
+
+
+
+    <div class="card shadow-sm">
+
+        <!-- HEADER 
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Ranking Domen (Fast Mode)</h5>
+        </div> -->
+
+<!-- ───────────────── TOP PAGER ───────────────── -->
+<div class="border-top border-bottom py-2 px-0" data-pager>
+    <div class="d-flex align-items-center px-1">
+        <!-- LEFT - może sobie "pływać", nie wpływa na nawigację -->
+        <div class="pager-left-slot d-flex align-items-center gap-2">
+            <!-- Rows selector -->
+            <form method="post" class="d-flex align-items-center gap-1 m-0">
+                <input type="hidden" name="page" value="1">
+                <label for="per_page_top" class="small text-muted">Wiersze:</label>
+                <select
+                    name="per_page"
+                    id="per_page_top"
+                    class="form-select form-select-sm"
+                    style="width: 90px"
+                    autocomplete="off"
+                >
+                    {% for n in [10,25,50,100,250,500,1000] %}
+                    <option value="{{ n }}" {% if n == per_page %}selected{% endif %}>
+                        {{ n }}
+                    </option>
+                    {% endfor %}
+                </select>
+				
+
+				
+            </form>
+			
+            <!-- COPY / CSV buttons -->
+            <button
+                id="copySelectedFast"
+                class="btn btn-sm btn-outline-secondary"
+                title="Copy selected to clipboard"
+            >
+                <i class="bi bi-files"></i>
+            </button>
+
+
+            
+        </div>
+
+        <span class="privacy-info"
+              tabindex="0"
+              aria-label="Privacy and data notice">
+            <span class="privacy-info-icon" aria-hidden="true">ⓘ</span>
+            <span class="privacy-info-card" role="tooltip">
+                <strong>Privacy &amp; data</strong>
+                This website does not create an archive of submitted content or lookup results.
+                It records only an aggregate visit count by country, displayed with its flag.
+                Table information is retrieved on demand through API connections and is not added to a user-data archive.
+            </span>
+        </span>
+
+        <!-- RIGHT - teraz pełni rolę "kotwicy" z pager-jump -->
+        <div class="pager-right-slot d-flex align-items-center gap-2 ms-auto">
+            <!-- PAGE JUMP - teraz relatywny do prawej strony -->
+			
+<div class="pager-jump me-3">
+
+  <span class="small text-muted ms-2">
+	<strong data-role="total-pages">{{ total_pages }}</strong>
+  </span>
+
+  <div class="input-group input-group-sm page-jump-group">
+    <input
+      type="number"
+      min="1"
+      max="{{ total_pages }}"
+      step="1"
+      value="{{ page }}"
+      class="form-control fast-search-input text-center"
+      data-role="page-input"
+    >
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      data-role="page-go">
+      GO
+    </button>
+  </div>
+
+</div>
+			
+            <!-- PAGINATION -->
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item">
+<button type="button" class="page-link pager-arrow" data-role="page-prev">
+    &lt;
+</button>
+                    </li>
+					
+			<!-- API TOGGLE -->
+<button
+  type="button"
+  class="btn btn-sm btn-outline-danger api-toggle-btn"
+  title="Włącz / wyłącz pobieranie statusu i tytułu"
+>
+  API: OFF
+</button>					
+					
+                    <li class="page-item">
+<button type="button" class="page-link pager-arrow" data-role="page-next">
+    &gt;
+</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+        <!-- ───────────────── TABLE ───────────────── -->
+
+		
+		
+        <div class="table-responsive">
+            <table id="fastTable" class="table align-middle mb-0">
+                <!-- Colgroup dla stabilnej geometrii -->
+                <colgroup>
+                    <col style="width:32px">   <!-- checkbox -->
+                    <col style="width:80px">   <!-- rank -->
+                    <col>                      <!-- domain -->
+                    <col>                      <!-- title -->
+                    <col style="width:42px">   <!-- analyze (chevron) -->
+                    <col style="width:80px">   <!-- status -->
+                </colgroup>
+
+                
+                <thead>
+                    <tr>
+                        <!-- Checkbox select all -->
+                        <th class="text-center checkbox-col">
+                            <input type="checkbox" id="selectAllFast" class="form-check-input">
+                        </th>
+                        <!-- Rank -->
+                        <th class="rank-col text-center">#</th>
+                        <!-- Domena -->
+                        <th>Domain</th>
+                        <!-- Tytuł -->
+                        <th>Title</th>
+                        <!-- Analiza (chevron) -->
+                        <th class="text-center">🔍</th>
+                        <!-- Status -->
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in rows %}
+                    <tr data-domain="{{ row.domain }}">
+                        <!-- Checkbox wiersza -->
+                        <td class="text-center">
+                            <input type="checkbox"
+                                   class="form-check-input row-check"
+                                   data-domain="{{ row.domain }}"
+                                   data-rank="{{ row.rank }}">
+                        </td>
+
+                        <!-- Rank -->
+                        <td class="text-center fw-bold">
+                            {{ row.rank }}
+                        </td>
+
+                        <!-- Domena + favicon -->
+                        <td>
+                            <a href="http://{{ row.domain }}" target="_blank"
+                               class="fw-semibold d-inline-flex align-items-center gap-2">
+								<img
+									class="favicon"
+									loading="lazy"
+									src="https://www.google.com/s2/favicons?domain={{ row.domain }}"
+									onerror="handleFaviconError(this)"
+									alt=""
+								>
+                                {{ row.domain }}
+                            </a>
+                        </td>
+
+                        <!-- Tytuł (wczytywanie) -->
+<td class="title-cell loading" data-domain="{{ row.domain }}">
+</td>
+
+
+                        <!-- Przycisk analizy (chevron) -->
+                        <td class="text-center">
+<button
+  type="button"
+  class="btn btn-sm analyze-btn"
+  data-domain="{{ row.domain }}"
+  aria-label="Pokaż analizę"
+>
+  <i class="bi bi-chevron-down"></i>
+</button>
+
+
+
+                        </td>
+
+                        <!-- Status -->
+<td class="status-cell text-center" data-domain="{{ row.domain }}">
+  <span class="badge bg-secondary">—</span>
+</td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+<!-- ───────────────── BOTTOM PAGER ───────────────── -->
+<div class="card-footer p-0" data-pager>
+    <div class="d-flex align-items-center px-1 py-2">
+        <!-- LEFT -->
+        <div class="d-flex align-items-center gap-2">
+            <div class="pager-left-slot">
+                <form method="post" class="d-flex align-items-center gap-1">
+                    <input type="hidden" name="page" value="1">
+                    <label for="per_page_bottom" class="small text-muted">Wiersze:</label>
+                    <select
+                        name="per_page"
+                        id="per_page_bottom"
+                        class="form-select form-select-sm"
+                        style="width: 90px"
+                        autocomplete="off"
+                    >
+                        {% for n in [10,25,50,100,250,500,1000] %}
+                        <option value="{{ n }}" {% if n == per_page %}selected{% endif %}>
+                            {{ n }}
+                        </option>
+                        {% endfor %}
+                    </select>
+					
+					
+                </form>
+				
+<div class="data-attribution">
+    Demo data: synthetic domains (not a live ranking)
+· Snapshot <span id="footerSnapshotLabel">{{ active_snapshot[:4] }}-{{ active_snapshot[4:] }}</span>
+</div>				
+            </div>
+        </div>
+
+        <!-- RIGHT - taka sama struktura jak w TOP PAGER -->
+        <div class="pager-right-slot d-flex align-items-center gap-2 ms-auto">
+		
+<div class="pager-jump me-3">
+
+  <span class="small text-muted ms-2">
+	<strong data-role="total-pages">{{ total_pages }}</strong>
+  </span>
+
+  <div class="input-group input-group-sm page-jump-group">
+    <input
+      type="number"
+      min="1"
+      max="{{ total_pages }}"
+      step="1"
+      value="{{ page }}"
+      class="form-control fast-search-input text-center"
+      data-role="page-input"
+    >
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      data-role="page-go">
+      GO
+    </button>
+  </div>
+
+</div>
+			
+
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item">
+<button type="button" class="page-link pager-arrow" data-role="page-prev">
+    &lt;
+</button>
+                    </li>
+					
+			<!-- API TOGGLE -->
+<button
+  type="button"
+  class="btn btn-sm btn-outline-danger api-toggle-btn"
+>
+  API: OFF
+</button>					
+					
+                    <li class="page-item">
+<button type="button" class="page-link pager-arrow" data-role="page-next">
+    &gt;
+</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+    </div>
+	
+
+<!-- ===============================
+     MODULES STACK (empty for now)
+     =============================== -->
+<div id="modulesStack"></div>
+	
+	
+</div>
+<script>
+  window.API_ENDPOINTS = {
+    check_page: "/api/check_page",
+    fetch_meta: "/api/fetch_meta"
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/table_fast.js') }}?v=5-reception-ui"></script>
+<script src="{{ url_for('static', filename='js/country_dropdown_refresh.js') }}?v=2-country-flag-title"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const totalRows = {{ total_rows }};
+
+  if (window.parent) {
+      window.parent.postMessage({
+          type: "FAST_TOTAL_ROWS",
+          rows: totalRows
+	}, window.location.origin);
+  }
+
+});
+</script>
+
+
+</body>
+</html>
