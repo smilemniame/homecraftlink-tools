@@ -21,4 +21,4 @@ Results depend on the source page and the content currently loaded. They may dif
 
 ## Dropdown documentation
 
-See [Monthly snapshots and dropdown filters](docs/DROPDOWNS.md) for control behavior, CSV formats and differences between the demo and the full service.
+See [Monthly snapshots and dropdown filters](table-demo/docs/DROPDOWNS.md) for control behavior, CSV formats and differences between the demo and the full service.
