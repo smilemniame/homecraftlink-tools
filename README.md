@@ -13,7 +13,7 @@ HomeCraftLink helps you explore websites, collect images, and extract text for r
 
 ## Repository status
 
-This repository is being prepared. Tool files and individual usage instructions will be added gradually.
+The first demo is available: [HomeCraftLink Table Demo](table-demo/README.md), with synthetic sample data, setup instructions and validation notes. More tools and individual usage instructions will be added gradually.
 
 ## Working with live content
 
