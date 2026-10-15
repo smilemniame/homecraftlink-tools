@@ -34,3 +34,7 @@ See [Gate 2 / Importer 2 — images and resource URLs](docs/IMPORTER2.md) for co
 ## Slideshow documentation
 
 See [Slideshow — selected images and local files](docs/SLIDESHOW.md) for navigation, timed playback, zoom and loading image URLs or local files.
+
+## Importer 3 documentation
+
+See [Gate 3 / Importer 3 — text, reading and translation](docs/IMPORTER3.md) for HTML extraction, reading controls, translation, restoring the original and TXT files.
