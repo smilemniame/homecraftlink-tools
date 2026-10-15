@@ -49,6 +49,20 @@ Titles and status information depend on the responses returned by external websi
 
 Results can change between runs. A row may show a 200 badge alongside a title describing a browser check or blocked request.
 
+## Inspect a domain
+
+Click the small arrow in a domain row to open its analysis. Click it again to close the panel.
+
+| Control or field | Meaning |
+| --- | --- |
+| Server | IP address and available country, region, city and ISP information. IP geolocation describes infrastructure, may be approximate and does not identify the website owner's location. |
+| Home links / External links | Two groups of addresses extracted from the analysed response. These lists are not a complete crawl of the website. |
+| GRelated | Opens Google with a `related:domain` query. Results depend on Google; similar-site matches are not guaranteed. |
+| GRelated IP | Opens a Google search for the displayed IP address. |
+| Expand / Collapse | Expands or compacts both link lists. |
+
+The supplied commons.wikimedia.org example shows 289 Home links and 402 External links. These are example response counts, not fixed totals. Counts and available information may change between requests. Analysis may be incomplete when a website returns a challenge, block page or unavailable response.
+
 ## Documentation scope
 
 This guide is based on the owner's supplied `top_sites.html`, `main.20250720.js` and Importer 1 screenshot reviewed on 14 October 2026. It documents the inspected frontend behavior; no new end-to-end importer test was performed for this documentation.
