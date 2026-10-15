@@ -30,3 +30,7 @@ See [Gate 1 / Importer 1 — domain lists](docs/IMPORTER1.md) for importing doma
 ## Importer 2 documentation
 
 See [Gate 2 / Importer 2 — images and resource URLs](docs/IMPORTER2.md) for collecting page HTML, browsing previews, copying images and exporting selected URLs.
+
+## Slideshow documentation
+
+See [Slideshow — selected images and local files](docs/SLIDESHOW.md) for navigation, timed playback, zoom and loading image URLs or local files.
