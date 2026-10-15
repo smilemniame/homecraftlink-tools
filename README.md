@@ -26,3 +26,7 @@ See [Monthly snapshots and dropdown filters](table-demo/docs/DROPDOWNS.md) for c
 ## Importer 1 documentation
 
 See [Gate 1 / Importer 1 — domain lists](docs/IMPORTER1.md) for importing domains, selecting rows, copying and CSV export.
+
+## Importer 2 documentation
+
+See [Gate 2 / Importer 2 — images and resource URLs](docs/IMPORTER2.md) for collecting page HTML, browsing previews, copying images and exporting selected URLs.
