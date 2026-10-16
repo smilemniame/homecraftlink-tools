@@ -1,0 +1,1 @@
+javascript:(async()=>{try{const html=await fetch(location.href,{cache:'no-store'}).then(r=>r.text());await navigator.clipboard.writeText(html);}catch(e){console.warn('Clipboard blocked');}window.open('https://homecraftlink.com/top_sites#ttsPaste','_blank');})();
