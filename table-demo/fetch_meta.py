@@ -4,8 +4,8 @@ from bs4 import BeautifulSoup
 
 def extract_page_title(html: str) -> Optional[str]:
     """
-    Wyciąga <title> z już pobranego HTML.
-    Ten moduł nie wykonuje żadnych requestów HTTP.
+    Extract the title from HTML that has already been fetched.
+    This module does not make HTTP requests.
     """
 
     if not isinstance(html, str) or not html:

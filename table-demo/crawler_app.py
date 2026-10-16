@@ -72,23 +72,23 @@ except ImportError:
     def extract_page_title(html):
         return ""
     
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 1. KONFIGURACJA I ZMIENNE ÅšRODOWISKOWE
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 1. CONFIGURATION AND ENVIRONMENT VARIABLES
+# ------------------------------------------------------------------------
 load_dotenv()
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# OPTYMALIZACJA CSV (RAM CACHE)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# CSV OPTIMIZATION (RAM CACHE)
+# ------------------------------------------------------------------------
 CSV_CACHE = {}
-CSV_CACHE_LIMIT = 1  # max 1 plik CSV w RAM na worker
+CSV_CACHE_LIMIT = 1  # At most one CSV file in RAM per worker
 CSV_CACHE_MTIME = {}
 CSV_CACHE_LOCK = threading.Lock()
 
 MAIN_CSV = None
 MAIN_SNAPSHOT = None
 
-# Logowanie
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] %(levelname)-5s %(message)s',
@@ -96,13 +96,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Konfiguracja analizy
+# Analysis settings
 AN_TIMEOUT   = float(os.getenv("ANALYZE_TIMEOUT", "3.0"))
 AN_MAX_BYTES = int(os.getenv("ANALYZE_MAX_BYTES", str(1024*1024)))
 AN_GEO       = os.getenv("ANALYZE_GEO", "1") == "1"
 AN_IPV4      = os.getenv("ANALYZE_FORCE_IPV4", "0") == "1"
 
-# Wymuszenie IPv4 (fix na wiszÄ…ce IPv6)
+# Force IPv4 to avoid stalled IPv6 connections
 if AN_IPV4:
     try:
         import urllib3.util.connection as urllib3_conn
@@ -114,7 +114,7 @@ if AN_IPV4:
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# StaÅ‚e
+# Constants
 DOMAIN_RX = re.compile(r'^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z]{2,})+$', re.IGNORECASE)
 SCHEME_RX = re.compile(r'^[a-zA-Z][a-zA-Z0-9+\-.]*://')
 MAX_BATCH_DOMAINS = 50
@@ -124,7 +124,7 @@ DEFAULT_TIMEOUT = 4
 
 MAX_EXTRACT_HTML_BYTES = 5 * 1024 * 1024  # 5 MB
 
-# Parametry trackingowe do wyciÄ™cia
+# Tracking parameters to remove
 TRACKING_PARAMS = {
     "utm_source","utm_medium","utm_campaign",
     "utm_term","utm_content","gclid","fbclid","fbp","ref",
@@ -156,41 +156,41 @@ def disable_html_browser_cache(response):
     return response
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# CACHE SNAPSHOTÃ“W (60 sekund)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# SNAPSHOT CACHE (60 seconds)
+# ------------------------------------------------------------------------
 SNAPSHOT_CACHE = {
     "snaps": [],
     "latest": None,
     "use_db": False,
     "ts": time.time()
 }
-SNAPSHOT_TTL = 60  # sekundy
+SNAPSHOT_TTL = 60  # seconds
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# FILTER CACHE (10 sekund dla czÄ™sto wyszukiwanych zapytaÅ„)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# FILTER CACHE (10 seconds for frequently searched queries)
+# ------------------------------------------------------------------------
 FILTER_CACHE = {}
-FILTER_CACHE_TTL = 10  # sekundy
+FILTER_CACHE_TTL = 10  # seconds
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
 # FAST FILTER RESULT CACHE
-# Gotowy wynik snapshot + q trzymamy w RAM,
-# Å¼eby paginacja nie skanowaÅ‚a miliona rekordÃ³w ponownie.
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Keep filtered snapshot + q results in RAM
+# so pagination does not rescan a million records.
+# ------------------------------------------------------------------------
 
 FILTER_RESULT_CACHE = {}
-FILTER_RESULT_CACHE_TTL = 300       # 5 minut
-FILTER_RESULT_CACHE_MAX = 32        # max liczba rÃ³Å¼nych filtrÃ³w na worker
+FILTER_RESULT_CACHE_TTL = 300       # 5 minutes
+FILTER_RESULT_CACHE_MAX = 32        # Maximum number of distinct filters per worker
 FILTER_RESULT_CACHE_MAX_ROWS = 100_000
 FILTER_RESULT_CACHE_LOCK = threading.Lock() 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# FAST LANES â€” PRIORYTET CSV vs API
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# FAST LANES - CSV PRIORITY OVER API REQUESTS
+# ------------------------------------------------------------------------
 from threading import Semaphore
 
-# CSV / PAGINACJA â€” RÃ“Å»NE SEMAFORY DLA RÃ“Å»NYCH TRAS
+# CSV / PAGINATION - SEPARATE SEMAPHORES FOR DIFFERENT ROUTES
 CSV_FAST_SEM_FAST = Semaphore(2)
 CSV_FAST_SEM_NORMAL = Semaphore(10)
 API_SEM = Semaphore(3)
@@ -199,22 +199,22 @@ FETCH_META_SEM = Semaphore(2)
 EXTRACT_TEXT_SEM = Semaphore(2)
 CHECK_PAGE_SIMPLE_SEM = Semaphore(4)
 FETCH_META_SIMPLE_SEM = Semaphore(4)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# FAST TABLE â€” Production CSV-only architecture
+# ------------------------------------------------------------------------
+# FAST TABLE - Production CSV-only architecture
 # Instant render + hydration via AJAX
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
 
 
 
-# ZakÅ‚adamy, Å¼e CSV_CACHE i CSV_CACHE_MTIME sÄ… zdefiniowane globalnie
-# tak jak ustaliliÅ›my wczeÅ›niej.
+# CSV_CACHE and CSV_CACHE_MTIME must be defined globally.
+# They are shared by the CSV cache helpers below.
 
-FILTER_CACHE_MAX = 200  # ðŸ”¥ limit cache
+FILTER_CACHE_MAX = 200  # Cache size limit
 
 def filter_cache_cleanup():
     now = time.time()
 
-    # usuÅ„ przeterminowane
+    # Remove expired entries
     expired_keys = [
         k for k, v in FILTER_CACHE.items()
         if now - v["ts"] > FILTER_CACHE_TTL
@@ -222,7 +222,7 @@ def filter_cache_cleanup():
     for k in expired_keys:
         FILTER_CACHE.pop(k, None)
 
-    # jeÅ›li nadal za duÅ¼y â†’ usuÅ„ najstarsze
+    # If still over the limit, remove the oldest entries
     while len(FILTER_CACHE) > FILTER_CACHE_MAX:
         oldest = min(FILTER_CACHE, key=lambda k: FILTER_CACHE[k]["ts"])
         FILTER_CACHE.pop(oldest, None)
@@ -250,10 +250,8 @@ def filter_result_cache_cleanup():
 
 
 def get_filtered_fast_rows(all_sites, snapshot, q, csv_mtime):
-    """
-    Filtruje caÅ‚y snapshot tylko przy pierwszym uÅ¼yciu snapshot + q.
-    Kolejne strony uÅ¼ywajÄ… gotowej listy z RAM.
-    """
+    """Filter the snapshot only on the first use of snapshot + q.
+    Subsequent pages use the prepared list in RAM."""
 
     result_key = f"{snapshot}:{csv_mtime}:{q}"
 
@@ -275,11 +273,11 @@ def get_filtered_fast_rows(all_sites, snapshot, q, csv_mtime):
 
             FILTER_RESULT_CACHE.pop(result_key, None)
 
-    # CACHE MISS â€” tylko tutaj skanujemy milion
+    # CACHE MISS - scan the snapshot only here
     started = time.perf_counter()
 
-    # Country dropdown wysyÅ‚a np. ".pl", ".de", ".uk".
-    # Dla dokÅ‚adnie 2-literowego TLD filtrujemy WYÅÄ„CZNIE koÅ„cÃ³wkÄ™ domeny.
+    # The Country dropdown sends values such as ".pl", ".de", and ".uk".
+    # For an exact two-letter TLD, match only the domain suffix.
     if re.fullmatch(r"\.[a-z]{2}", q):
         matched = [
             s
@@ -287,8 +285,8 @@ def get_filtered_fast_rows(all_sites, snapshot, q, csv_mtime):
             if s["domain"].lower().rstrip(".").endswith(q)
         ]
     else:
-        # ZwykÅ‚a wyszukiwarka nadal dziaÅ‚a jak wczeÅ›niej:
-        # fragment moÅ¼e wystÄ™powaÄ‡ w dowolnym miejscu domeny.
+        # Regular search keeps its existing behavior:
+        # the query may occur anywhere in the domain.
         matched = [
             s
             for s in all_sites
@@ -303,7 +301,7 @@ def get_filtered_fast_rows(all_sites, snapshot, q, csv_mtime):
         f"elapsed={elapsed:.3f}s"
     )
 
-    # Nie pozwalamy bardzo szerokim zapytaniom zjadaÄ‡ RAM.
+    # Prevent very broad queries from consuming too much RAM.
     if len(matched) <= FILTER_RESULT_CACHE_MAX_ROWS:
 
         filter_result_cache_cleanup()
@@ -382,9 +380,9 @@ def top_sites_fast():
             1,
             min(params.get("per_page", 10, type=int) or 10, 100)
         )
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         # SNAPSHOT / CSV
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         csv_dir = Path(current_app.static_folder) / "csv"
 
         available_snapshots = sorted(
@@ -404,9 +402,9 @@ def top_sites_fast():
 
         csv_path = csv_dir / f"{snapshot}.csv"
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         # FILTER CACHE
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         mode = "partial" if is_partial else "full"
         filter_key = f"{snapshot}:{q}:{page}:{per_page}:{mode}"
 
@@ -426,7 +424,7 @@ def top_sites_fast():
         end_idx = page * per_page
 
         if not csv_path.exists():
-            return f"BÅ‚Ä…d: Plik {csv_path} nie istnieje.", 404
+            return f"Error: File {csv_path} does not exist.", 404
 
         csv_started = time.perf_counter()
 
@@ -459,14 +457,14 @@ def top_sites_fast():
 
         filter_started = time.perf_counter()
         
-        # ðŸš€ FILTER + PAGINATION
+        # FILTER + PAGINATION
         if not q:
-            # PeÅ‚ny snapshot â€” najszybsza Å›cieÅ¼ka.
+            # Full snapshot - the fastest path.
             total = len(all_sites)
             rows = all_sites[start_idx:end_idx]
 
         else:
-            # Filtr snapshot + q liczony tylko RAZ.
+            # Compute the snapshot + q filter only once.
             csv_mtime = CSV_CACHE_MTIME.get(cache_key, 0)
 
             matched = get_filtered_fast_rows(
@@ -478,7 +476,7 @@ def top_sites_fast():
 
             total = len(matched)
 
-            # Paginacja dziaÅ‚a juÅ¼ wyÅ‚Ä…cznie na gotowym maÅ‚ym zbiorze.
+            # Paginate only the prepared result set.
             rows = matched[start_idx:end_idx]
 
         total_pages = max(1, (total + per_page - 1) // per_page) if per_page else 1
@@ -495,9 +493,9 @@ def top_sites_fast():
 
         render_started = time.perf_counter()
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         # PARTIAL (tbody)
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         if is_partial:
             resp = make_response(render_template(
                 "top_sites_fast_tbody.html",
@@ -509,9 +507,9 @@ def top_sites_fast():
             resp.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
             resp.headers["Cache-Control"] = "no-store"
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         # FULL PAGE
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         else:
             resp = make_response(render_template(
                 "top_sites_fast.html",
@@ -536,9 +534,9 @@ def top_sites_fast():
         )
         save_cache_started = time.perf_counter()
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        # ðŸš€ SAVE CACHE (SAFE)
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
+        # SAVE CACHE (SAFE)
+        # ------------------------------------------------------------------------
         if len(FILTER_CACHE) >= FILTER_CACHE_MAX:
             oldest = min(FILTER_CACHE, key=lambda k: FILTER_CACHE[k]["ts"])
             FILTER_CACHE.pop(oldest, None)
@@ -574,9 +572,9 @@ def top_sites_fast():
         )
 
         CSV_FAST_SEM_FAST.release() 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 2. BAZA DANYCH (MYSQL)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 2. DATABASE (MYSQL)
+# ------------------------------------------------------------------------
 db_config = {
     "host":     os.getenv("DB_HOST", "localhost"),
     "port":     int(os.getenv("DB_PORT", 3306)),
@@ -590,26 +588,24 @@ if pwd:
     db_config["password"] = pwd
 
 def get_db_connection():
-    """
-    Tworzy poÅ‚Ä…czenie z bazÄ….
-    JeÅ›li baza nie dziaÅ‚a/nie istnieje, rzuci wyjÄ…tek, ktÃ³ry obsÅ‚uÅ¼ymy w widokach (fallback do CSV).
-    """
+    """Create a database connection.
+    Connection failures raise exceptions handled by the views with a CSV fallback."""
     return mysql.connector.connect(**db_config)
 
 def verify_ssl(domain: str) -> bool:
     bad_ssl = {'login-account.net'}
     return domain not in bad_ssl
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 3. HELPERY (CACHE, URL, FORMATOWANIE)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 3. HELPERS (CACHE, URL, FORMATTING)
+# ------------------------------------------------------------------------
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€ GEO CACHE + FALLBACK â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
 GEO_CACHE_TTL = 86400  # 24h
 _geo_cache = {}       # ip -> (ts, data)
 GEO_CACHE_MAX = 2000
 
-GEO_PRIMARY_COOLDOWN = 300  # 5 minut
+GEO_PRIMARY_COOLDOWN = 300  # 5 minutes
 _geo_primary_blocked_until = 0.0
 
 
@@ -664,12 +660,12 @@ def _geo_cache_set(ip, data):
     _geo_cache[ip] = (time.time(), data)
 
 def geo_lookup(ip: str):
-    # 0ï¸âƒ£ CACHE
+    # 0. CACHE
     cached = _geo_cache_get(ip)
     if cached:
         return cached
 
-    # 1ï¸âƒ£ PRIMARY â€” ip-api.com
+    # 1. PRIMARY - ip-api.com
     if _geo_primary_available():
         try:
             r = session.get(
@@ -679,7 +675,7 @@ def geo_lookup(ip: str):
                 timeout=1.0
             )
 
-            # Jawny HTTP rate limit
+            # Explicit HTTP rate limit
             if r.status_code == 429:
                 _geo_primary_block("HTTP 429")
 
@@ -704,8 +700,8 @@ def geo_lookup(ip: str):
                     _geo_cache_set(ip, data)
                     return data
 
-                # ip-api moÅ¼e odpowiedzieÄ‡ HTTP 200,
-                # ale status wewnÄ…trz JSON bÄ™dzie "fail".
+                # ip-api may return HTTP 200
+                # while the JSON status is "fail".
                 message = str(j.get("message", "")).lower()
 
                 if "limit" in message or "too many" in message:
@@ -727,7 +723,7 @@ def geo_lookup(ip: str):
                 f"[GEO] ip-api error ip={ip}: {e}"
             )
 
-    # 2ï¸âƒ£ FALLBACK â€” FreeIPAPI
+    # 2. FALLBACK - FreeIPAPI
     if _geo_fallback_available():
         try:
             r = session.get(
@@ -776,11 +772,11 @@ def geo_lookup(ip: str):
 
     return None
                
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# CSV LOADER HELPER (uÅ¼ywany przez FAST TABLE)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# CSV LOADER HELPER (used by FAST TABLE)
+# ------------------------------------------------------------------------
 def load_csv_into_cache(csv_path: Path):
-    """Trzyma maksymalnie CSV_CACHE_LIMIT plikÃ³w CSV w RAM na worker."""
+    """Keep at most CSV_CACHE_LIMIT CSV files in RAM per worker."""
     cache_key = str(csv_path.absolute())
 
     try:
@@ -791,7 +787,7 @@ def load_csv_into_cache(csv_path: Path):
 
     with CSV_CACHE_LOCK:
 
-        # Ten sam plik i ta sama wersja juÅ¼ siedzi w RAM.
+        # The same file version is already in RAM.
         if (
             cache_key in CSV_CACHE
             and CSV_CACHE_MTIME.get(cache_key) == mtime
@@ -801,8 +797,8 @@ def load_csv_into_cache(csv_path: Path):
             )
             return
 
-        # JeÅ›li ten sam plik istnieje, ale zostaÅ‚ zmieniony na dysku,
-        # usuÅ„ starÄ… wersjÄ™ przed ponownym zaÅ‚adowaniem.
+        # If the cached file has changed on disk,
+        # remove the old version before loading it again.
         if cache_key in CSV_CACHE:
             logger.info(
                 f"[CSV CACHE STALE] removing old {csv_path.name}"
@@ -810,7 +806,7 @@ def load_csv_into_cache(csv_path: Path):
             CSV_CACHE.pop(cache_key, None)
             CSV_CACHE_MTIME.pop(cache_key, None)
 
-        # ZWOLNIJ RAM PRZED budowaniem nowego milionowego CSV.
+        # FREE RAM BEFORE loading the next million-row CSV.
         while len(CSV_CACHE) >= CSV_CACHE_LIMIT:
             old_key = next(iter(CSV_CACHE))
 
@@ -865,7 +861,7 @@ def load_csv_into_cache(csv_path: Path):
             f"in {elapsed:.2f}s"
         )
 def detect_latest_snapshot():
-    """Wykrywa najnowszy snapshot CSV (YYYYMM.csv)."""
+    """Detect the latest CSV snapshot (YYYYMM.csv)."""
     
     csv_dir = Path(app.static_folder) / "csv"
 
@@ -885,7 +881,7 @@ def detect_latest_snapshot():
     
     
 def preload_fast_csv():
-    """Åaduje tylko gÅ‚Ã³wny CSV do RAM."""
+    """Load only the main CSV file into RAM."""
     csv_dir = Path(app.static_folder) / "csv"
     main_file = csv_dir / MAIN_CSV
 
@@ -901,7 +897,7 @@ def preload_fast_csv():
 
 @app.route("/api/preload_csv")
 def api_preload_csv():
-    """RÄ™czne wywoÅ‚anie preload CSV (przydatne po deploy)."""
+    """Manually preload the CSV cache, for example after deployment."""
 
     remote_ip = request.remote_addr or ""
 
@@ -915,7 +911,7 @@ def api_preload_csv():
     except Exception as e:
         logger.exception("[CSV PRELOAD ERROR]")
         return jsonify({"ok": False, "error": "internal error"}), 500
-# Filtry Jinja i normalizacja snapshotÃ³w
+# Jinja filters and snapshot normalization
 @app.template_filter('extract_domain')
 def extract_domain(url: str) -> str:
     parsed = urlparse(url)
@@ -940,12 +936,12 @@ def fmt_ym(s: str | None) -> str:
     if m: return f"{m.group(1)}-{m.group(2)}"    
     return s
     
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
 # SEARCH QUERY HELPER
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
 
 def normalize_search_query(raw_q: str) -> str:
-    """Normalizuje input szukajki (URL â†’ domain, trim, lower)."""
+    """Normalize the search input: URL to domain, trim whitespace, and lowercase."""
     if not raw_q:
         return ""
     q = raw_q.strip()
@@ -992,11 +988,11 @@ def is_safe_public_url(url: str) -> bool:
         if not host:
             return False
 
-        # bezpoÅ›redni adres IP
+        # Direct IP address
         try:
             ips = [ipaddress.ip_address(host)]
         except ValueError:
-            # domena -> sprawdÅº WSZYSTKIE adresy z DNS
+            # Domain - check ALL addresses returned by DNS
             infos = socket.getaddrinfo(
                 host,
                 parsed.port or (443 if parsed.scheme == "https" else 80),
@@ -1028,7 +1024,7 @@ def is_safe_public_url(url: str) -> bool:
     except Exception:
         return False
         
-# Sesja HTTP (Requests)
+# HTTP session (Requests)
 session = requests.Session()
 retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
 adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=retries)
@@ -1036,14 +1032,14 @@ session.mount('http://', adapter)
 session.mount('https://', adapter)
 session.headers.update({'User-Agent': 'Mozilla/5.0 (compatible; MyCrawler/1.3)', 'Accept-Encoding': 'identity'})
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# FAST TABLE â€” ULTRA STABILITY CACHE + HTTP SESSION
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# FAST TABLE - STABILITY CACHE + HTTP SESSION
+# ------------------------------------------------------------------------
 FAST_ROW_CACHE = {}          # domain -> {"ts": float, "data": {...}}
 FAST_ROW_CACHE_TTL = 3600    # H1
 FAST_ROW_CACHE_MAX = 5000
 
-FAST_ROW_SEM = Semaphore(8)  # max rÃ³wnolegÅ‚ych FAST requestÃ³w backendowych
+FAST_ROW_SEM = Semaphore(8)  # Maximum concurrent backend FAST requests
 
 fast_http = requests.Session()
 fast_http_adapter = HTTPAdapter(
@@ -1059,9 +1055,9 @@ fast_http.headers.update({
     "Connection": "keep-alive",
 })
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# SAFE OUTBOUND HTTP â€” requesty do domen kontrolowanych przez usera
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# SAFE OUTBOUND HTTP - requests to user-supplied domains
+# ------------------------------------------------------------------------
 
 outbound_http = requests.Session()
 
@@ -1090,17 +1086,15 @@ def safe_outbound_request(
     stream: bool = True,
     max_redirects: int = 3,
 ):
-    """
-    Bezpieczny request HTTP/HTTPS do adresÃ³w kontrolowanych przez uÅ¼ytkownika.
-
-    Zasady:
-    - tylko http / https,
-    - blokada prywatnych / lokalnych / specjalnych IP,
-    - brak automatycznych redirectÃ³w Requests,
-    - kaÅ¼dy redirect sprawdzany ponownie przez is_safe_public_url(),
-    - maksymalna liczba redirectÃ³w,
-    - brak retry.
-    """
+    """Send an HTTP/HTTPS request to a user-supplied URL.
+    
+    Rules:
+    - Allow only HTTP and HTTPS.
+    - Block private, local, and special-purpose IP addresses.
+    - Disable automatic Requests redirects.
+    - Recheck every redirect with is_safe_public_url().
+    - Limit the number of redirects.
+    - Do not retry requests."""
 
     current_url = (url or "").strip()
 
@@ -1132,11 +1126,11 @@ def safe_outbound_request(
             allow_redirects=False,
         )
 
-        # Brak redirectu â†’ zwracamy odpowiedÅº
+        # No redirect - return the response
         if response.status_code not in (301, 302, 303, 307, 308):
             return response
 
-        # Redirect, ale wykorzystaliÅ›my juÅ¼ limit
+        # Redirect limit has already been reached
         if redirect_no >= max_redirects:
             response.close()
             raise requests.TooManyRedirects(
@@ -1186,9 +1180,9 @@ def fast_cache_get(domain: str):
     return item["data"]
 
 def fast_cache_set(domain: str, data: dict):
-    # prosty limit pamiÄ™ci
+    # Simple memory limit
     if len(FAST_ROW_CACHE) >= FAST_ROW_CACHE_MAX:
-        # usuÅ„ najstarszy wpis
+        # Remove the oldest entry
         oldest_key = min(FAST_ROW_CACHE, key=lambda k: FAST_ROW_CACHE[k]["ts"])
         FAST_ROW_CACHE.pop(oldest_key, None)
 
@@ -1273,10 +1267,8 @@ def _safe_get_html(url: str, *, timeout=None, verify=True, max_bytes=None):
         return 0, ""
         
 def get_page_title(domain: str) -> str:
-    """
-    Bezpieczne pobranie HTML + ekstrakcja <title>.
-    Sam fetch_meta.py nie wykonuje juÅ¼ Å¼adnych requestÃ³w HTTP.
-    """
+    """Safely fetch HTML and extract its title.
+    The fetch_meta.py module does not make HTTP requests."""
 
     domain = (domain or "").strip().lower()
 
@@ -1310,12 +1302,12 @@ def get_page_title(domain: str) -> str:
         )
         return ""        
         
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 4. GÅÃ“WNA LOGIKA (TOP SITES: DB + CSV FALLBACK)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 4. MAIN LOGIC (TOP SITES: DB + CSV FALLBACK)
+# ------------------------------------------------------------------------
 
 def query_top_sites_db(q: str | None, page: int, per_page: int, table: str) -> Tuple[int, List[Dict]]:
-    """Logika pobierania z MySQL."""
+    """Fetch data from MySQL."""
     where_clause = "1"
     params = []
     if q:
@@ -1337,9 +1329,9 @@ def query_top_sites_db(q: str | None, page: int, per_page: int, table: str) -> T
 
     conn = get_db_connection()
     with conn.cursor(dictionary=True) as cur:
-        # ðŸš€ OPTYMALIZACJA: Limit dla COUNT przy duÅ¼ych zbiorach
+        # OPTIMIZATION: limit COUNT on large datasets
         if not q:
-            # Dla pustego zapytania uÅ¼yj oszacowania zamiast peÅ‚nego COUNT
+            # For an empty query, use an estimate instead of a full COUNT
             cur.execute(f"SELECT COUNT(*) AS cnt FROM {table} WHERE {where_clause} LIMIT 100000", params)
         else:
             cur.execute(f"SELECT COUNT(*) AS cnt FROM {table} WHERE {where_clause}", params)
@@ -1361,7 +1353,7 @@ def root_redirect():
 def top_sites_page(snapshot: str | None = None):
     if snapshot is not None and snapshot != "current" and normalize_snapshot_arg(snapshot) is None:
         abort(404)
-    # ðŸ”¥ FAST LANE â€” CSV MA PIERWSZEÅƒSTWO
+    # FAST LANE - CSV HAS PRIORITY
     if not CSV_FAST_SEM_NORMAL.acquire(blocking=False):
         return render_template(
             "top_sites.html",
@@ -1376,7 +1368,7 @@ def top_sites_page(snapshot: str | None = None):
     try:
         snap_norm = normalize_snapshot_arg(snapshot)
         
-        # 1. CACHED SNAPSHOT DISCOVERY (raz na 60 sekund)
+        # 1. CACHED SNAPSHOT DISCOVERY (once every 60 seconds)
         now = time.time()
         if now - SNAPSHOT_CACHE["ts"] > SNAPSHOT_TTL:
 
@@ -1390,12 +1382,12 @@ def top_sites_page(snapshot: str | None = None):
             SNAPSHOT_CACHE["snaps"] = available
             SNAPSHOT_CACHE["latest"] = available[0] if available else None
 
-            # ðŸ”’ Obecnie zawsze CSV-only
+            # Currently always CSV-only
             SNAPSHOT_CACHE["use_db"] = False
 
             SNAPSHOT_CACHE["ts"] = now
 
-        # uÅ¼ycie z cache
+        # Use cached discovery results
         snaps = SNAPSHOT_CACHE["snaps"]
         use_db = SNAPSHOT_CACHE["use_db"]
         latest = SNAPSHOT_CACHE["latest"]
@@ -1404,9 +1396,9 @@ def top_sites_page(snapshot: str | None = None):
         snaps = [MAIN_SNAPSHOT]
         latest = MAIN_SNAPSHOT
         
-        # Parametry requestu
+        # Request parameters
         raw_q = request.args.get("q", "", type=str)
-        q = normalize_search_query(raw_q)  # UÅ¼yj nowej funkcji!
+        q = normalize_search_query(raw_q)  # Normalize the search query
         
         # URL -> DOMAIN
         if raw_q.startswith(("http://", "https://")):
@@ -1425,7 +1417,7 @@ def top_sites_page(snapshot: str | None = None):
         sites, total = [], 0
         loaded_from_db = False
 
-        # 2. PrÃ³ba pobrania danych (DB)
+        # 2. Attempt to load data from the database
         if use_db and effective_snapshot:
             table = f"top_sites_{effective_snapshot}"
             try:
@@ -1441,7 +1433,7 @@ def top_sites_page(snapshot: str | None = None):
             csv_path = csv_dir / f"{effective_snapshot}.csv" if effective_snapshot else None
             
             if not csv_path or not csv_path.exists():
-                return render_template("top_sites.html", sites=[], total_rows=0, page=1, per_page=per_page, total_pages=1, q=raw_q, snapshots=snaps, snapshot=(effective_snapshot or "current"), button_stats=[], error="Brak danych.")
+                return render_template("top_sites.html", sites=[], total_rows=0, page=1, per_page=per_page, total_pages=1, q=raw_q, snapshots=snaps, snapshot=(effective_snapshot or "current"), button_stats=[], error="No data available.")
 
             try:
                 load_csv_into_cache(csv_path)
@@ -1450,7 +1442,7 @@ def top_sites_page(snapshot: str | None = None):
                 
                 
 
-                # KROK B: FILTR + SLICE (Single Pass) z CACHE
+                # STEP B: FILTER + SLICE (single pass) WITH CACHE
                 start_idx = (page - 1) * per_page
                 end_idx = page * per_page
                 
@@ -1458,13 +1450,13 @@ def top_sites_page(snapshot: str | None = None):
                     total = len(all_sites_cached)
                     sites = all_sites_cached[start_idx:end_idx]
                 else:
-                    # ðŸš€ CACHE WYNIKÃ“W FILTRA
+                    # FILTER RESULT CACHE
                     q_low = raw_q.lower()
                     all_matches = [s for s in all_sites_cached if q_low in s["domain"].lower()]
                     total = len(all_matches)
                     sites = all_matches[start_idx:end_idx]
                 
-                # ðŸš€ OBSÅUGA PARTIAL RENDER (TU, nie w except!)
+                # HANDLE PARTIAL RENDER HERE, OUTSIDE THE EXCEPTION HANDLER
                 if request.headers.get("X-Partial") == "table":
                     return render_template("top_sites_table.html", sites=sites)
                     
@@ -1481,13 +1473,13 @@ def top_sites_page(snapshot: str | None = None):
                     error="Internal server error"
                 )
         
-        # Standardowy render (pierwsze wejÅ›cie)
+        # Standard render (initial visit)
         button_stats = []
         if use_db:
-            # (Twoja logika button_stats - bez zmian)
+            # Existing button_stats logic
             pass 
 
-        # ðŸš€ OPTYMALIZACJA: Obliczenie total_pages bez floatÃ³w
+        # OPTIMIZATION: calculate total_pages without floating-point arithmetic
         total_pages = max(1, (total + per_page - 1) // per_page) if total else 1
 
         return render_template(
@@ -1563,32 +1555,32 @@ def fetch_fast_row_data(domain: str) -> dict:
 
     fast_cache_set(domain, result)
     return result        
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 5. ENDPOINTY API (Analiza, Tekst, Meta)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 5. API ENDPOINTS (ANALYSIS, TEXT, METADATA)
+# ------------------------------------------------------------------------
 @app.route("/api/analyze")
 def analyze():
-    # ðŸš§ API LOW PRIORITY
+    # LOW-PRIORITY API
     if not API_SEM.acquire(blocking=False):
         return jsonify({"error": "api busy"}), 429
     
     try:
         url = request.args.get("url", "") or ""
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 1) LIMIT DÅUGOÅšCI â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         if len(url) > MAX_URL_LENGTH:
-            return jsonify({"error": "URL za dÅ‚ugi"}), 413
+            return jsonify({"error": "URL is too long"}), 413
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 2) NORMALIZACJA â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         normalized_url = normalize_url(url)
         if not normalized_url:
             return jsonify({"error": "Invalid URL provided"}), 400
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 3) PARSING DOMENY â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         parsed = urlparse(normalized_url)
         domain = (parsed.hostname or parsed.netloc or "").lower()
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 4) DNS + BLOKADA SSRF â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         ip_address = ""
         try:
             infos = socket.getaddrinfo(domain, 443, 0, socket.SOCK_STREAM)  # 0 = IPv4/IPv6
@@ -1614,20 +1606,20 @@ def analyze():
             logger.warning(f"DNS lookup failed for domain {domain}: {ge}")
             ip_address = ""
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 5) POBRANIE HTML â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         http_status, html = _safe_get_html(
             normalized_url,
             verify=verify_ssl(domain) if 'verify_ssl' in globals() else True
         )
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 6) PARSOWANIE LINKÃ“W (BS4 + regex fallback + REKLAMA FILTER) â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         internal, external = set(), set()
 
         if html:
             try:
                 soup = BeautifulSoup(html, "html.parser")
 
-                # ðŸ§¹ WYCINANIE SYFU: reklamy, tracking, share-buttons, player controls
+                # Remove ads, tracking, share buttons, and player controls
                 for bad_sel in [
                     "script", "style", "noscript",
                     "div.ad", "div.ads", "div.reklama", "div.promo", "div.overlay",
@@ -1662,7 +1654,7 @@ def analyze():
                     return True  # relative URL
                 return host == base_root or (base_root and host.endswith("." + base_root))
 
-            # ðŸ§¹ FILTROWANIE SMIECI Z LINKÃ“W
+            # FILTER UNWANTED LINKS
             def clean_link(h: str) -> str:
                 if not h or h.startswith("#"):
                     return ""
@@ -1685,7 +1677,7 @@ def analyze():
                 if h in ("/", ""):
                     return ""
 
-                # normalizacja adresu
+                # Normalize the URL
                 try:
                     fixed = normalize_url(h, normalized_url)
                 except:
@@ -1694,20 +1686,20 @@ def analyze():
                 if not fixed:
                     return ""
 
-                # usuÅ„ koÅ„cowe slash'e
+                # Remove trailing slashes
                 if fixed.endswith("/"):
                     fixed = fixed[:-1]
 
                 return fixed
 
-            # PRZETWARZANIE KAÅ»DEGO LINKU
+            # PROCESS EACH LINK
             for raw in anchors:
                 cleaned = clean_link(raw)
                 if not cleaned:
                     continue
                 (internal if is_internal(cleaned) else external).add(cleaned)
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 7) GEOLOKALIZACJA (opcjonalna, krÃ³tki timeout) â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         location = {"country": "Unknown", "region": "Unknown", "city": "Unknown", "isp": "Unknown"}
         if AN_GEO and ip_address:
             geo = geo_lookup(ip_address)
@@ -1719,7 +1711,7 @@ def analyze():
                     "isp":     geo.get("isp", "Unknown"),
                 })
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€ 8) ZWRÃ“Ä† JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
         return jsonify({
             "ip": ip_address,
             "http_status": http_status,
@@ -1780,7 +1772,7 @@ def api_check_page():
                 finally:
                     r.close()
 
-                # NiektÃ³re serwery blokujÄ… HEAD.
+                # Some servers block HEAD requests.
                 if s in {403, 405}:
                     r = safe_outbound_request(
                         f"https://{dom}",
@@ -1922,37 +1914,35 @@ def api_fetch_meta():
 
     finally:
         FETCH_META_SEM.release()
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 6. STATYSTYKI WIZYT & UPDATE (FIXED)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 6. VISIT STATISTICS AND UPDATES
+# ------------------------------------------------------------------------
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# GLOBE VISITS â€” JSON, BEZ BAZY DANYCH
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# GLOBE VISITS - JSON, NO DATABASE
+# ------------------------------------------------------------------------
 
 VISITS_DATA_DIR = Path(here) / "data"
 VISITS_FILE = VISITS_DATA_DIR / "visits_countries.json"
 VISITS_LOCK_FILE = VISITS_DATA_DIR / "visits_countries.lock"
 
-# zabezpieczenie w obrÄ™bie jednego procesu Flask
+# Synchronization within a single Flask process
 VISITS_THREAD_LOCK = threading.Lock()
 
-# folder utworzy siÄ™ sam
+# Create the folder if needed
 VISITS_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _read_visits_file():
-    """
-    Czyta statystyki globusa.
-
-    Nowy format:
+    """Read globe statistics.
+    
+    Current format:
     {
         "countries": {...},
-        "markers": [[lat, lng], ...] lub [[lat, lng, countryCode], ...]
+        "markers": [[lat, lng], ...] or [[lat, lng, countryCode], ...]
     }
-
-    ObsÅ‚uguje teÅ¼ automatycznie stary format pliku.
-    """
+    
+    Also supports the legacy file format."""
 
     empty = {
         "countries": {},
@@ -1969,9 +1959,9 @@ def _read_visits_file():
         if not isinstance(data, dict):
             return empty
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        # NOWY FORMAT
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
+        # NEW FORMAT
+        # ------------------------------------------------------------------------
         if "countries" in data or "markers" in data:
 
             countries = data.get("countries", {})
@@ -1988,10 +1978,10 @@ def _read_visits_file():
                 "markers": markers
             }
 
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        # STARY FORMAT â†’ migracja w pamiÄ™ci
-        # np. {"GB": {"count": 3, ...}}
-        # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ------------------------------------------------------------------------
+        # LEGACY FORMAT - migrate in memory
+        # For example: {"GB": {"count": 3, ...}}
+        # ------------------------------------------------------------------------
         countries = {}
         markers = []
 
@@ -2015,8 +2005,8 @@ def _read_visits_file():
                 "country": item.get("country") or code
             }
 
-            # Ze starego formatu znamy tylko ostatniÄ… pozycjÄ™ kraju,
-            # wiÄ™c zachowujemy jÄ… jako jeden marker.
+            # The legacy format contains only the last position for each country,
+            # so preserve that position as a single marker.
             lat = item.get("lat")
             lng = item.get("lng")
 
@@ -2040,10 +2030,8 @@ def _read_visits_file():
         return empty
 
 def _acquire_visits_file_lock(timeout=1.5):
-    """
-    Prosta blokada miÄ™dzy procesami.
-    DziaÅ‚a rÃ³wnieÅ¼ gdy Gunicorn ma kilka workerÃ³w.
-    """
+    """Provide a simple interprocess lock.
+    Also works with multiple Gunicorn workers."""
     deadline = time.time() + timeout
 
     while time.time() < deadline:
@@ -2056,7 +2044,7 @@ def _acquire_visits_file_lock(timeout=1.5):
             return True
 
         except FileExistsError:
-            # usuÅ„ bardzo stary lock po ewentualnym crashu procesu
+            # Remove a stale lock left by a crashed process
             try:
                 if time.time() - VISITS_LOCK_FILE.stat().st_mtime > 10:
                     VISITS_LOCK_FILE.unlink(missing_ok=True)
@@ -2077,18 +2065,16 @@ def _release_visits_file_lock():
 
 
 def record_country_visit(country_code, country, lat, lon):
-    """
-    1. ZwiÄ™ksza licznik kraju o 1.
-    2. Dla globusa zapisuje anonimowe [lat, lng, countryCode].
-
-    Nie zapisuje:
-    - IP
-    - miasta
-    - regionu
-    - ISP
-    - ASN
-    - czasu wizyty
-    """
+    """1. Increment the country counter by one.
+    2. Save anonymous [lat, lng, countryCode] markers for the globe.
+    
+    Do not store:
+    - IP addresses
+    - cities
+    - regions
+    - ISPs
+    - ASNs
+    - visit timestamps"""
 
     code = (country_code or "").strip().upper()
 
@@ -2109,9 +2095,9 @@ def record_country_visit(country_code, country, lat, lon):
             countries = stats.setdefault("countries", {})
             markers = stats.setdefault("markers", [])
 
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            # FLAGA / LICZNIK KRAJU
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # ------------------------------------------------------------------------
+            # FLAG / COUNTRY COUNTER
+            # ------------------------------------------------------------------------
             item = countries.get(code, {})
 
             try:
@@ -2124,10 +2110,10 @@ def record_country_visit(country_code, country, lat, lon):
 
             countries[code] = item
 
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            # MARKER â€” LAT + LNG + KOD KRAJU
-            # Bez IP / miasta / regionu / czasu wizyty.
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # ------------------------------------------------------------------------
+            # MARKER - LATITUDE + LONGITUDE + COUNTRY CODE
+            # No IP address, city, region, or visit timestamp.
+            # ------------------------------------------------------------------------
             try:
                 if lat is not None and lon is not None:
 
@@ -2147,9 +2133,9 @@ def record_country_visit(country_code, country, lat, lon):
             except Exception:
                 pass
 
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            # ATOMOWY ZAPIS
-            # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # ------------------------------------------------------------------------
+            # ATOMIC WRITE
+            # ------------------------------------------------------------------------
             tmp_file = VISITS_FILE.with_name(
                 f".{VISITS_FILE.name}.{os.getpid()}.tmp"
             )
@@ -2224,13 +2210,13 @@ def api_track_visit():
         if not geo:
             return jsonify({"status": "fail", "message": "no geo"}), 200
 
-        # --- POLA GEO ---
+        # --- GEO FIELDS ---
         country_code = geo.get("country_code")
         timezone = geo.get("timezone")
         asn = geo.get("as")
         asname = geo.get("asname")
 
-        # --- ZAPIS WIZYTY DO STATYSTYK GLOBUSA ---
+        # --- RECORD THE VISIT IN GLOBE STATISTICS ---
         record_country_visit(
             country_code=country_code,
             country=geo.get("country"),
@@ -2264,12 +2250,10 @@ def api_track_visit():
 
 @app.get("/api/visits_geo")
 def api_visits_geo():
-    """
-    Zwraca osobno:
-
-    countries = liczniki flag
-    markers   = anonimowe wspÃ³Å‚rzÄ™dne punktÃ³w
-    """
+    """Return separate collections:
+    
+    countries = flag counters
+    markers = anonymous point coordinates"""
 
     try:
         limit = min(
@@ -2286,9 +2270,9 @@ def api_visits_geo():
 
     countries = []
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    # FLAGI
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ------------------------------------------------------------------------
+    # FLAGS
+    # ------------------------------------------------------------------------
     for country_code, item in countries_data.items():
 
         if not isinstance(item, dict):
@@ -2315,9 +2299,9 @@ def api_visits_geo():
 
     countries = countries[:limit]
 
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    # MARKERY
-    # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ------------------------------------------------------------------------
+    # MARKERS
+    # ------------------------------------------------------------------------
     markers = []
 
     for marker in markers_data:
@@ -2325,9 +2309,9 @@ def api_visits_geo():
         if not isinstance(marker, (list, tuple)):
             continue
 
-        # KompatybilnoÅ›Ä‡:
-        # stary marker: [lat, lng]
-        # nowy marker:  [lat, lng, countryCode]
+        # Compatibility:
+        # Legacy marker: [lat, lng]
+        # Current marker: [lat, lng, countryCode]
         if len(marker) not in (2, 3):
             continue
 
@@ -2365,7 +2349,7 @@ def api_visits_geo():
         "countries": countries,
         "markers": markers
     })
-# âœ… NOWOÅšÄ†: Funkcja pomocnicza do czytania CSV ze statystykami
+# Helper for reading statistics CSV files
 def load_prefix_stats(kind="cc"):
     csv_dir = Path(app.static_folder) / "csv"
     fname = "prefix_stats_cc.csv" if kind == "cc" else "prefix_stats_global.csv"
@@ -2390,11 +2374,11 @@ def load_prefix_stats(kind="cc"):
         pass
     return out
 
-# âœ… NOWOÅšÄ†: Endpoint zwracajÄ…cy dane z CSV (naprawia "wszystko 0")
-# === Prefix stats (TLD) â€” kompatybilne z v13 (COUNTRY PREFIXES) ===
+# Endpoint for CSV statistics (fixes all-zero results)
+# === Prefix stats (TLD) - compatible with v13 (COUNTRY PREFIXES) ===
 
 def _prefix_dirs():
-    # gÅ‚Ã³wny katalog + fallback (jak w v13)
+    # Primary directory and fallback (as in v13)
     base1 = os.path.join(app.static_folder, "csv")
     base2 = os.path.join(base1, "top_sites.csv")
     return [base1, base2]
@@ -2408,18 +2392,16 @@ def _find_file(relname: str) -> str | None:
 
 @app.get("/api/prefix_stats")
 def api_prefix_stats():
-    """
-    Kompatybilne z v13:
+    """Compatible with v13:
     GET /api/prefix_stats?snapshot=YYYYMM
-    Czyta {YYYYMM}p.csv (tld,count). JeÅ›li brak, liczy z {YYYYMM}.csv.
-    Zwraca dict: { "pl": 124, "com": 9999, ... }
-    """
+    Read {YYYYMM}p.csv (tld,count), or count entries in {YYYYMM}.csv if absent.
+    Return a dictionary such as {"pl": 124, "com": 9999}."""
     snap = (request.args.get("snapshot", "") or "").strip()
     snap = normalize_snapshot_arg(snap) or snap
     if not snap or not re.fullmatch(r"\d{6}", snap):
         abort(400, "Bad snapshot")
 
-    # 1) gotowy plik YYYYMMp.csv
+    # 1. Precomputed YYYYMMp.csv file
     p_csv = _find_file(f"{snap}p.csv")
     if p_csv:
         data = {}
@@ -2434,7 +2416,7 @@ def api_prefix_stats():
                     data[t] = c
         return jsonify(data)
 
-    # 2) fallback: policz z YYYYMM.csv
+    # 2. Fallback: count entries in YYYYMM.csv
     src_csv = _find_file(f"{snap}.csv")
     if not src_csv:
         abort(404, f"No stats for {snap}")
@@ -2458,7 +2440,7 @@ def api_prefix_stats():
 
    
 
-# âœ… NOWOÅšÄ†: Endpoint do aktualizacji statusu HTTP (naprawia brak update'Ã³w)
+# Endpoint for updating HTTP status
 @app.post("/api/update_status")
 def api_update_status():
     remote_ip = request.remote_addr or ""
@@ -2471,11 +2453,11 @@ def api_update_status():
     domain = data.get("domain", "").strip().lower()
     snapshot = data.get("snapshot")
 
-    # Walidacja
+    # Validation
     if not DOMAIN_RX.fullmatch(domain) or not snapshot:
         return jsonify(ok=False), 400
     
-    # Prosty security check na nazwÄ™ tabeli
+    # Validate the table name
     if not re.fullmatch(r"\d{6}", str(snapshot)):
          return jsonify(ok=False, error="Invalid snapshot"), 400
 
@@ -2483,7 +2465,7 @@ def api_update_status():
     final_url = None
     
     try:
-        # ðŸ”¥ KLUCZOWA ZMIANA: UÅ¼ywamy GET zamiast HEAD i allow_redirects=True
+        # Use GET instead of HEAD; follow redirects through the safe request helper
         r = safe_outbound_request(
             f"https://{domain}",
             method="GET",
@@ -2506,7 +2488,7 @@ def api_update_status():
     try:
         conn = get_db_connection()
         with conn.cursor() as cur:
-            # ðŸ”¥ Aktualizujemy status KOÅƒCOWY (200 zamiast 301)
+            # Update the FINAL status (200 instead of 301)
             cur.execute(
                 f"""
                 UPDATE top_sites_{snapshot}
@@ -2519,14 +2501,14 @@ def api_update_status():
                 (status, domain, domain, domain)
             )
             rows = cur.rowcount
-            logger.info(f"[STATUS UPDATE] {domain} â†’ {status} | rows={rows}")
+            logger.info(f"[STATUS UPDATE] {domain} -> {status} | rows={rows}")
 
         conn.commit()
         conn.close()
         saved = True
         logger.info(f"Updated status for {domain}: {status}")
     except Exception as e:
-        # Tryb CSV (read-only) lub bÅ‚Ä…d DB
+        # CSV mode (read-only) or database error
         logger.warning(f"Status update failed (local/csv mode?): {e}")
         saved = False
 
@@ -2536,14 +2518,14 @@ def api_update_status():
 def stats_page():
     return render_template("stats_globe.html")
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 7. WHISPER STT & TTS (UNIFIED) USUNIÄ˜TY
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 7. WHISPER STT AND TTS (UNIFIED) - REMOVED
+# ------------------------------------------------------------------------
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 8. UTILS (PLIKI, PROXY, LOGI)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 8. UTILITIES (FILES, PROXY, LOGS)
+# ------------------------------------------------------------------------
 
 
 @app.route("/download-quicklinks")
@@ -2591,14 +2573,14 @@ def proxy_flag():
             max_redirects=0,
         )
         
-        # FlagCounter normalnie powinien zwrÃ³ciÄ‡ obraz.
+        # FlagCounter should normally return an image.
         content_type = (r.headers.get("Content-Type") or "").lower()
 
         if not content_type.startswith("image/"):
             r.close()
             abort(502)
 
-        # Nie pozwalamy proxy pobieraÄ‡ gigantycznych odpowiedzi.
+        # Limit the response size downloaded by the proxy.
         max_bytes = 2 * 1024 * 1024
         content = bytearray()
 
@@ -2716,17 +2698,17 @@ def api_detect_lang():
     text = data.get("text", "")
 
     if not isinstance(text, str):
-        return jsonify({"error": "NieprawidÅ‚owy tekst"}), 400
+        return jsonify({"error": "Invalid text"}), 400
 
     text = text.strip()
 
     if not text:
-        return jsonify({"error": "Brak tekstu"}), 400
+        return jsonify({"error": "No text provided"}), 400
 
-    # Maksymalnie 20 000 znakÃ³w do samej detekcji jÄ™zyka.
+    # Use at most 20,000 characters for language detection.
     if len(text) > 20000:
         return jsonify({
-            "error": "Tekst jest za dÅ‚ugi. Maksymalnie 20000 znakÃ³w."
+            "error": "Text is too long. Maximum: 20000 characters."
         }), 413
 
     try:
@@ -2739,7 +2721,7 @@ def api_detect_lang():
             e
         )
         return jsonify({
-            "error": "Nie udaÅ‚o siÄ™ wykryÄ‡ jÄ™zyka."
+            "error": "Could not detect the language."
         }), 500
         
 @app.route('/api/list_csv')
@@ -2753,7 +2735,7 @@ def list_csv():
     except Exception:
         return jsonify([]), 400
 
-    # ðŸ”’ Nie pozwÃ³l wyjÅ›Ä‡ poza static/csv
+    # Prevent access outside static/csv
     if base != csv_root and csv_root not in base.parents:
         logger.warning(f"[LIST CSV BLOCKED PATH] dir={subdir!r}")
         return jsonify({"error": "forbidden"}), 403
@@ -2778,7 +2760,7 @@ def download_slideshow():
     )
         
 # =========================================================
-# FAST TABLE â€” SIMPLE GET ANALYSIS (frontend compatibility)
+# FAST TABLE - SIMPLE GET ANALYSIS (frontend compatibility)
 # =========================================================
 
 @app.get("/api/check_page_simple")
@@ -2902,9 +2884,9 @@ def api_fast_reset():
 
     logger.info("[FAST RESET] FAST_ROW_CACHE + FILTER_CACHE cleared")
     return jsonify({"ok": True})
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# 9. URUCHOMIENIE
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ------------------------------------------------------------------------
+# 9. STARTUP
+# ------------------------------------------------------------------------
 
 try:
     MAIN_SNAPSHOT, MAIN_CSV = detect_latest_snapshot()

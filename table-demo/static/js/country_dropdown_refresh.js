@@ -50,8 +50,8 @@
 
       const data = await response.json();
 
-      // Ignorujemy odpowiedź starego miesiąca,
-      // jeśli użytkownik zdążył wybrać kolejny.
+      // Ignore responses for the previous month
+      // if the user has already selected another one.
       if (thisRequest !== requestNumber) {
         return;
       }
@@ -104,7 +104,7 @@
     }
   }
 
-  // Po wyborze innego miesiąca odśwież Country.
+  // Refresh Country after selecting another month.
   document.addEventListener("click", event => {
     const month =
       event.target.closest("[data-table-snapshot]");
@@ -122,13 +122,13 @@
 
     loadedSnapshot = null;
 
-    // Pozwalamy najpierw table_fast.js zmienić URL.
+    // Let table_fast.js update the URL first.
     setTimeout(() => {
       refreshCountryDropdown(snapshot, true);
     }, 0);
   });
 
-  // Kontrola przy każdym otwieraniu Country.
+  // Check each time the Country dropdown opens.
   document.addEventListener("click", event => {
     const button = event.target.closest(
       '#prefixDropdown [data-bs-toggle="dropdown"]'
