@@ -5,14 +5,14 @@
 // ─────────────────────────────────────────────
 
 
-// === 🔥 GLOBALNY KONTROLER ABORTA (MASTER CONTROL) ===
-// === GLOBALNY KONTROLER PAGINACJI ===
+// ===  GLOBAL CONTROLLER ABORT (MASTER CONTROL) ===
+// === GLOBAL PAGINATION CONTROLLER ===
 let GLOBAL_ABORT = new AbortController();
 
-// === KONTROLER TYLKO BACKGROUND API ===
+// === BACKGROUND API CONTROLLER ONLY ===
 let FAST_API_ABORT = new AbortController();
 
-// === 🔥 GENERATION ID (do zabijania starych timeoutów) ===
+// === GENERATION ID (for killing old timeouts) ===
 let CURRENT_GENERATION = 0;
 
 let IS_PAGE_LOADING = false;
@@ -96,11 +96,11 @@ let TOTAL_PAGES = null;
 let isSwitching = false;
 
 
-//  Zaznaczenia w runtime (czyszczone przy reload)
+//  Runtime selections (cleared upon reload)
 let selectedFast = new Set();
 
 // ====================== FAST META CACHE (runtime) ======================
-const fastMetaCache = new Map(); // Pamięć podręczna dla status + title
+const fastMetaCache = new Map(); // Cache for status + title
 
 const FAST_CACHE_LIMIT = 500;
 
@@ -123,8 +123,8 @@ function setLimitedCache(cache, key, value, limit = FAST_CACHE_LIMIT) {
 
 
 let API_FAST_ENABLED = false;      // status + title (auto-refresh)
-let API_ANALYZE_ENABLED = true;    // rozwijany wiersz (chevron)
-//  FAST API — licznik pracy (auto-shutdown)
+let API_ANALYZE_ENABLED = true;    // expandable row (chevron)
+// FAST API — progress counter (auto-shutdown)
 let API_FAST_TOTAL = 0;
 let API_FAST_DONE  = 0;
 
@@ -140,15 +140,15 @@ function suppressAutoFast(ms = 1500) {
 function stopTableApisForUserAction() {
   
 
-  // Nie pozwól AUTO API wystartować ponownie podczas akcji użytkownika
+  // Do not allow AUTO API to restart during a user action
   suppressAutoFast(3000);
 
-  // Wyłącz automatyczne status/title
+  // Disable automatic status/title
   API_FAST_ENABLED = false;
   API_FAST_DONE = 0;
   API_FAST_TOTAL = 0;
 
-// Zabij WYŁĄCZNIE background API — nigdy paginację użytkownika
+// Kill ONLY background APIs — never user-triggered pagination
 if (FAST_API_ABORT) {
   try {
     FAST_API_ABORT.abort();
@@ -157,16 +157,16 @@ if (FAST_API_ABORT) {
   }
 }
 
-// Nowy kontroler dla przyszłego background API
+// New controller for the future background API
 FAST_API_ABORT = new AbortController();
 
-  // Wyczyść kolejkę background API
+  // Clear the background API queue
   ApiGate.cancelAll();
   ApiGate.running = 0;
   ApiGate.queue = [];
   ApiGate.pending.clear();
 
-  // Zabij oczekujące timery AUTO API
+  // Kill pending AUTO API timers
   clearAllTimeouts();
 
   syncApiButtons();
@@ -222,7 +222,7 @@ document.addEventListener("click", (e) => {
   const newSnapshot = (trigger.dataset.tableSnapshot || "").trim();
   const oldSnapshot = new URLSearchParams(location.search).get("snapshot");
 
-  // tylko jeśli SNAPSHOT faktycznie się zmienia
+  // only if the SNAPSHOT actually changes
   if (newSnapshot && newSnapshot !== oldSnapshot) {
     stopTableApisForUserAction();
 
@@ -232,7 +232,7 @@ document.addEventListener("click", (e) => {
 
 	history.replaceState(null, "", "?" + sp.toString());
 
-	// Aktualizacja widocznej daty rankingu i stopki
+	// Update to the displayed ranking date and footer
 	const snapshotText =
 	  `${newSnapshot.slice(0, 4)}-${newSnapshot.slice(4, 6)}`;
 
@@ -250,7 +250,7 @@ document.addEventListener("click", (e) => {
 	  footerSnapshotLabel.textContent = snapshotText;
 	}
 
-	// Aktualny miesiąc w menu
+	// Current month on the menu
 	document
 	  .querySelectorAll("[data-table-snapshot]")
 	  .forEach(item => {
@@ -260,7 +260,7 @@ document.addEventListener("click", (e) => {
 		);
 	  });
 
-	// Aktualizacja źródła dla list zależnych od miesiąca
+	// Source update for month-dependent lists
 	const prefixDropdown = document.getElementById("prefixDropdown");
 
 	if (prefixDropdown) {
@@ -298,7 +298,7 @@ function resetPageOnSourceChange() {
   const sp = new URLSearchParams(location.search);
   sp.set("page", "1");
 
-  //  jeśli q jest puste w input — usuń je
+  //  if q is empty in the input — remove it
   const searchInput = document.querySelector('#searchInput, input[name="q"]');
   if (searchInput && searchInput.value.trim() === "") {
     sp.delete("q");
@@ -339,18 +339,16 @@ function buildFastPayload(page) {
 
   return sp;
 }
+
 // ─────────────────────────────────────────────
-// API GATE — kontrola wąskiego gardła
-// ─────────────────────────────────────────────
-// ─────────────────────────────────────────────
-// API GATE — kontrola wąskiego gardła
+// API GATE —bottleneck control
 // ─────────────────────────────────────────────
 const ApiGate = {
   running: 0,
   max: 1,
   queue: [],
   cancelled: false,
-  pending: new Set(), //  Śledzi pending requesty
+  pending: new Set(), //  Tracks pending requests
 
   async run(task) {
     if (this.cancelled) return;
@@ -368,7 +366,7 @@ const ApiGate = {
       console.error('[ApiGate] task error:', e);
     } finally {
       this.running--;
-      this.pending.delete(task); //  Usuń z pending
+      this.pending.delete(task); //  Remove from pending
       if (this.queue.length && !this.cancelled) {
         this.run(this.queue.shift());
       }
@@ -387,7 +385,7 @@ cancelAll() {
 
   this.pending.clear();
 
-  // 🔥 KLUCZOWE — RESET STANU
+  //  KEY — STATE RESET
   this.running = 0;
 
   setTimeout(() => (this.cancelled = false), 0);
@@ -491,9 +489,7 @@ async function fetchTbody(page) {
 // ─────────────────────────────────────────────
 // CORE
 // ─────────────────────────────────────────────
-// ─────────────────────────────────────────────
-// CORE
-// ─────────────────────────────────────────────
+
 async function goToPage(page) {
 
 
@@ -554,7 +550,7 @@ if (!tbody) {
   isSwitching = false;
   
   hideFastWakeSpinner();
-  console.warn("[FAST PAGE] Brak tbody");
+  console.warn("[FAST PAGE] Missing tbody");
   return;
 }
 
@@ -562,18 +558,18 @@ if (!tbody) {
 	const html = await fetchTbody(page);
 
 
-	// 1️⃣ najpierw czysty render
+	// first, a clean render
 	tbody.innerHTML = html;
 
 
 
-	// 2️⃣ event po renderze
+	//  post-render event
 
 
 	document.dispatchEvent(new Event('fastTable:tbodyReplaced'));
 
 		
-    // 3️⃣ stan / URL
+   // State / URL
     currentPage = page;
 
 	const sp = new URLSearchParams(location.search);
@@ -592,7 +588,7 @@ if (!tbody) {
     syncPagerUI();
 	
 
-    // 4️⃣ dopiero po 2 klatkach uznajemy stronę za gotową
+    //  only after 2 frames do we consider the page ready
 	requestAnimationFrame(() => {
 
 
@@ -743,7 +739,7 @@ document.addEventListener("click", (e) => {
 
   const href = (link.getAttribute("href") || "").trim();
 
-  // samo otwieranie submenu nie jest akcją tabeli
+  // Opening a submenu is not, in itself, a table action.
   if (!href || href === "#" || href.startsWith("javascript:")) return;
 
   stopTableApisForUserAction();
@@ -896,14 +892,14 @@ document.addEventListener("click", (e) => {
 
   const href = (link.getAttribute("href") || "").trim();
 
-  // Kliknięcie otwierające submenu nie filtruje tabeli.
+  // Clicking to open a submenu does not filter the table.
   if (!href || href === "#" || href.startsWith("javascript:")) {
     return;
   }
 
   const url = new URL(href, location.href);
 
-  // Przechwytujemy tylko nawigację wewnątrz ciężkiej tabeli.
+  // We only capture navigation inside the heavy table.
   if (
     url.origin !== location.origin ||
     url.pathname !== "/top_sites_fast"
@@ -916,8 +912,8 @@ document.addEventListener("click", (e) => {
 
 	const params = new URLSearchParams(url.search);
 
-	// Link dropdownu mógł powstać dla poprzedniego miesiąca.
-	// Zawsze używamy miesiąca aktualnie wybranego w tabeli.
+	// The dropdown link might have been created for the previous month.
+	// We always use the month currently selected in the table.
 	const currentSnapshot = getCurrentSnapshot();
 
 	if (currentSnapshot) {
@@ -946,7 +942,7 @@ document.addEventListener("click", (e) => {
 });
 
 
-// RESET FILTRA — kliknięcie w Total rows
+// FILTER RESET — click on Total rows
 document.addEventListener("click", (e) => {
   const reset = e.target.closest("#totalRowsReset");
   if (!reset) return;
@@ -976,10 +972,6 @@ document.addEventListener("click", (e) => {
   safePageChange(1);
 });
 
-// ─────────────────────────────────────────────
-// KEYBOARD PAGINATION (ARROWS)
-// SAFE: uses same pipeline as buttons
-// ─────────────────────────────────────────────
 
 // ─────────────────────────────────────────────
 // KEYBOARD PAGINATION (ARROWS)
@@ -988,18 +980,18 @@ document.addEventListener("click", (e) => {
 
 document.addEventListener("keydown", (e) => {
 
-  // nie reaguj gdy piszemy w inputach
+  // do not react when we are typing in input fields
   if (
     e.target.closest("input, textarea, select, [contenteditable]")
   ) return;
 
-  // nie reaguj podczas przełączania
+  // do not react while switching
   if (IS_PAGE_LOADING || isSwitching) return;
 
-  // blokada gdy focus w pager input
+  // lock when focus is in pager input
   if (e.target.closest('[data-role="page-input"]')) return;
 
-  // → następna strona
+  // → next page
 if (e.key === "ArrowRight") {
   if (TOTAL_PAGES && currentPage >= TOTAL_PAGES) return;
   e.preventDefault();
@@ -1015,7 +1007,7 @@ if (e.key === "ArrowRight") {
   return;
 }
 
-  // ← poprzednia strona
+  // ← previous page
 if (e.key === "ArrowLeft") {
   if (currentPage <= 1) return;
   e.preventDefault();
@@ -1030,7 +1022,7 @@ if (e.key === "ArrowLeft") {
   safePageChange(basePage - 1);
   return;
 }
-  // HOME = pierwsza strona
+  // HOME = first page
   if (e.key === "Home") {
 
     if (currentPage === 1) return;
@@ -1047,7 +1039,7 @@ if (e.key === "ArrowLeft") {
     return;
   }
 
-  // END = ostatnia strona (jeśli znamy)
+  // END = last page (if known)
   if (e.key === "End") {
 
     if (!TOTAL_PAGES) return;
@@ -1074,16 +1066,16 @@ document.addEventListener("input", (e) => {
   const input = e.target.closest('[data-role="page-input"]');
   if (!input) return;
 
-  // tylko cyfry
+  // digits only
   input.value = input.value.replace(/\D+/g, "");
 
-  // max długość (np. 6 cyfr)
+  // maximum length (e.g., 6 digits)
   const MAX_DIGITS = 6;
   if (input.value.length > MAX_DIGITS) {
     input.value = input.value.slice(0, MAX_DIGITS);
   }
 
-  // clamp do TOTAL_PAGES jeśli znamy
+  // clamp to TOTAL_PAGES if known
   if (TOTAL_PAGES) {
     const v = parseInt(input.value || "0", 10);
     if (v > TOTAL_PAGES) {
@@ -1096,13 +1088,13 @@ function refreshVisibleTitleStatus(root, gen) {
 	
 
 	
-  // 🔥 GENERATION GUARD: jeśli to wywołanie jest stare, nic nie rób
+  //  GENERATION GUARD: if this call is old, do nothing
   if (gen !== CURRENT_GENERATION) {
     
     return;
   }
 
-  // WARTOWNIK: Jeśli globalny abort jest w trakcie, nie zaczynaj niczego nowego
+  // SENTRY: If a global abort is in progress, do not start anything new.
   if (FAST_API_ABORT.signal.aborted) return;
 
   if (!root || !API_FAST_ENABLED || isSwitching) return;
@@ -1114,7 +1106,7 @@ function refreshVisibleTitleStatus(root, gen) {
     if (!domain) return;
 
     setTimeout(() => {
-      // 🔥 GENERATION GUARD: sprawdź przed wykonaniem
+      //  GENERATION GUARD:check before executing
       if (gen !== CURRENT_GENERATION) {
         
         return;
@@ -1122,7 +1114,7 @@ function refreshVisibleTitleStatus(root, gen) {
       if (!API_FAST_ENABLED) return;
 
       ApiGate.run(async () => {
-        // 🔥 GENERATION GUARD: sprawdź przed wejściem do ApiGate
+        // GENERATION GUARD: check before entering ApiGate
         if (gen !== CURRENT_GENERATION) return;
 
         showStatusSpinner(domain);
@@ -1131,7 +1123,7 @@ function refreshVisibleTitleStatus(root, gen) {
         try {
           data = await fetchFastStatus(domain);
           if (data?.aborted) return;
-          if (gen !== CURRENT_GENERATION) return; // Kolejny guard po async
+          if (gen !== CURRENT_GENERATION) return; // Another guard after async
 
           updateTableCells(domain, data);
         } finally {
@@ -1192,11 +1184,11 @@ function initFastTable() {
     }
   });
 
-  // ✅ NIC nie dociągamy drugi raz przy starcie
+  //  We do NOT re-tighten anything when starting up.
   document.dispatchEvent(new Event('fastTable:tbodyReplaced'));
   syncPagerUI();
 
-  // ✅ API dopiero po spokojnym wejściu strony
+  //  API only after the page has fully loaded
   
 setTimeout(() => {
 
@@ -1223,7 +1215,7 @@ setTimeout(() => {
 }
 
 document.addEventListener('fastTable:tbodyReplaced', () => {
-  // Przywróć zaznaczenia z Set
+  // Restore selections from the Set
   document.querySelectorAll('.row-check').forEach(cb => {
     if (selectedFast.has(cb.dataset.domain)) {
       cb.checked = true;
@@ -1231,7 +1223,7 @@ document.addEventListener('fastTable:tbodyReplaced', () => {
     }
   });
 
-  // Zsynchronizuj checkbox "zaznacz wszystko"
+  // Synchronize the "select all" checkbox
   const header = document.getElementById('selectAllFast');
   if (header) {
     const visible = Array.from(document.querySelectorAll('.row-check'));
@@ -1314,7 +1306,7 @@ function onSelectAllChange(e) {
 }
 
 
-  // Delegacja eventów (ważne dla AJAX!)
+  //Event delegation (important for AJAX!)
   document.addEventListener('change', function (e) {
     onRowCheckboxChange(e);
     if (e.target.id === 'selectAllFast') {
@@ -1340,7 +1332,7 @@ function updateFastCopyButton() {
 updateFastCopyButton();
 
 function clearFastSelection() {
-	selectedFast.clear();  //  Czyścimy Set
+	selectedFast.clear();  //  We Clear the Set
   document.querySelectorAll('.row-check').forEach(cb => {
     cb.checked = false;
     cb.closest('tr')?.classList.remove('row-selected');
@@ -1400,7 +1392,7 @@ function clearStatusSpinner(domain) {
   );
   if (!cell) return;
 
-  // jeśli nie nadpisze tego updateTableCells(), zostanie „—”
+  // if it doesn't overwrite updateTableCells(), it will be „—”
   cell.innerHTML = `<span class="badge bg-secondary">—</span>`;
 }
 
@@ -1433,7 +1425,7 @@ if (titleCell) {
 
 	titleCell.replaceChildren(span);
 
-    //  tylko jeśli tekst się nie mieści
+    // only if the text does not fit
     titleCell.addEventListener('mouseenter', () => {
       const textWidth = span.scrollWidth;
       const visibleWidth = titleCell.clientWidth;
@@ -1519,7 +1511,7 @@ async function fetchFastStatus(domain) {
   }
 }
 
-// Zaktualizuj fetchWithSoftTimeout, aby przyjmowała opcje
+// Update `fetchWithSoftTimeout` to accept options
 function fetchWithSoftTimeout(url, timeoutMs = 5000, options = {}) {
   const controller = new AbortController();
 
@@ -1564,7 +1556,7 @@ async function fetchFullAnalysis(domain) {
   if (!API_ANALYZE_ENABLED) {
     return { error: true };
   }
-  //  cooldown per domena
+  //  cooldown per domain
   const last = domainLastFetch.get(domain) || 0;
   const now = Date.now();
   if (now - last < DOMAIN_COOLDOWN_MS) {
@@ -1582,7 +1574,7 @@ async function fetchFullAnalysis(domain) {
   };
 
   try {
-    // 1️⃣ STATUS — krótki timeout
+    //  STATUS — short timeout
 	const r1 = await fetchWithSoftTimeout(
 	  `/api/check_page_simple?domain=${encodeURIComponent(domain)}`,
 	  2000,
@@ -1591,7 +1583,7 @@ async function fetchFullAnalysis(domain) {
     if (!r1.ok) throw new Error('check_page failed');
     result.check = await r1.json();
 
-    // 2️⃣ META — trochę dłużej, ale nadal krótko
+    //  META — a bit longer, but still short
 	const r2 = await fetchWithSoftTimeout(
 	  `/api/fetch_meta_simple?domain=${encodeURIComponent(domain)}`,
 	  2500,
@@ -1611,7 +1603,7 @@ async function fetchFullAnalysis(domain) {
 
 function renderAnalysisHTML(data) {
   if (data.error) {
-    return `<div class="text-danger">Błąd pobierania analizy</div>`;
+    return `<div class="text-danger">Failed to load analysis</div>`;
   }
 
   const { check, meta } = data;
@@ -1690,7 +1682,7 @@ function renderAnalysisHTML(data) {
 }
 
 
-/* delikatna linia oddzielająca od linków */
+/* a thin line separating it from the links */
 .analysis-box.collapsed .analysis-panel-ip::after {
   content: "";
   display: block;
@@ -1703,12 +1695,12 @@ function renderAnalysisHTML(data) {
    COLLAPSED MODE — MOVE & HIGHLIGHT COLLAPSE BUTTON
    =============================== */
 
-/* kontener przycisków */
+/* button container */
 .analysis-box.collapsed .analysis-actions-inline {
   position: relative;
 }
 
-/* sam przycisk collapse */
+/* the button itself collapse */
 .analysis-box.collapsed .analysis-collapse-btn {
   
   right: 6px;
@@ -1741,12 +1733,12 @@ function renderAnalysisHTML(data) {
    ANALYSIS — COLLAPSE BUTTON (ALL STATES)
    =============================== */
 
-/* panel IP jako punkt odniesienia */
+/* IP panel as a point of reference */
 .analysis-panel-ip {
   position: relative;
 }
 
-/* przycisk — domyślnie (ROZWINIĘTY) */
+/* button — default (EXPANDED) */
 .analysis-collapse-btn {
   
   top: 6px;
@@ -1763,7 +1755,7 @@ function renderAnalysisHTML(data) {
   z-index: 10;
 }
 
-/* hover — zawsze */
+/* hover — Always */
 .analysis-collapse-btn:hover {
   opacity: 1;
   background: rgba(255,255,255,0.18);
@@ -1771,7 +1763,7 @@ function renderAnalysisHTML(data) {
 }
 
 /* ===============================
-   COLLAPSED — lekko wzmocniony
+   COLLAPSED — slightly reinforced
    =============================== */
 
 .analysis-box.collapsed .analysis-collapse-btn {
@@ -1785,16 +1777,16 @@ function renderAnalysisHTML(data) {
    ANALYSIS — COLLAPSE BUTTON (FINAL)
    =============================== */
 
-/* kontener przycisków */
+/* button container */
 .analysis-actions-inline {
   display: flex;
   align-items: center;
   gap: .25rem;
 }
 
-/* przycisk collapse — ZAWSZE POD TABELKĄ */
+/* collapse button — ALWAYS BELOW THE TABLE*/
 .analysis-collapse-btn {
-  margin-left: auto;            /* ⬅️ wypycha w prawo */
+  margin-left: auto;            /* pushes to the right */
   padding: 4px 6px;
   border-radius: 6px;
 
@@ -1812,7 +1804,7 @@ function renderAnalysisHTML(data) {
   border-color: #fff;
 }
 
-/* collapsed — lekko wzmocniony */
+/* collapsed — slightly reinforced */
 .analysis-box.collapsed .analysis-collapse-btn {
   background: rgba(255,255,255,0.18);
   border-color: rgba(255,255,255,0.45);
@@ -1828,15 +1820,15 @@ function renderAnalysisHTML(data) {
 `
   }
 
-  //  1. Dedykowany cache
+  //  1. Dedicated cache
   const fullAnalysisCache = new Map();
 
-  //  2. Funkcja renderująca (HTML Update)
-// W funkcji renderAnalysisIntoRow() (~linia 630) dodaj:
+  //  2.Rendering function (HTML Update)
+// In the renderAnalysisIntoRow() function (~line 630), add:
 function renderAnalysisIntoRow(analysisRowEl, data) {
   if (!analysisRowEl) return;
 
-  // A) IP / GEO - BRAK DANYCH
+  // A) IP / GEO - NO DATA
   const ipTd = analysisRowEl.querySelector('.analysis-ip');
   if (ipTd) {
     if (data.ip) {
@@ -1844,11 +1836,11 @@ function renderAnalysisIntoRow(analysisRowEl, data) {
       ipTd.textContent = data.ip;
       ipTd.removeAttribute('data-empty');
 	  
-	  //  AKTYWACJA PRZYCSKU "RELATED IP"
+	  //  BUTTON ACTIVATION "RELATED IP"
 const ipBtn = analysisRowEl.querySelector('.google-related-ip');
 if (ipBtn && data.ip) {
-  ipBtn.dataset.ip = data.ip;   // ⬅️ ustaw IP
-  ipBtn.disabled = false;       // ⬅️ odblokuj
+  ipBtn.dataset.ip = data.ip;   // Set the IP address
+  ipBtn.disabled = false;       // Enable the button
   ipBtn.classList.remove('btn-outline-secondary');
   ipBtn.classList.add('btn-outline-primary');
 }
@@ -1860,7 +1852,7 @@ if (ipBtn && data.ip) {
     }
   }
 
-  // Location Info - BRAK DANYCH
+  // Location Info - NO DATA
   const loc = data.location || {};
   const countryCell = analysisRowEl.querySelector('.analysis-country');
   const regionCell = analysisRowEl.querySelector('.analysis-region');
@@ -1872,7 +1864,7 @@ if (ipBtn && data.ip) {
   if (cityCell) cityCell.textContent = loc.city || '—';
   if (ispCell) ispCell.textContent = loc.isp || '—';
 
-  // B) Helper do renderowania listy linków - BRAK DANYCH
+  // B) Helper for rendering a list of links - NO DATA
   const renderLinkList = (list, containerClass, countClass) => {
     const listEl = analysisRowEl.querySelector(containerClass);
     const countEl = analysisRowEl.querySelector(countClass);
@@ -1975,13 +1967,13 @@ requestAnimationFrame(() => {
     const box = analysisRow.querySelector('.analysis-box');
     if (!box) return;
 
-    // ⬇️ SZKIELET + NOWY BUTTON COLLAPSE
+    //  SKELETON + NEW BUTTON COLLAPSE
 box.insertAdjacentHTML('afterbegin', `
 <div class="analysis-grid">
   <div class="analysis-panel analysis-panel-ip">
     <div class="analysis-panel-h">
       IP / GEO
-      <!--  TU POJAWI SIĘ analysis-global-error W PRZYPADKU BŁĘDU -->
+      <!--  IF AN ERROR OCCURS, analysis-global-error WILL APPEAR HERE -->
     </div>
     <div class="analysis-panel-b">
       <table class="table table-sm table-bordered mb-2">
@@ -2020,7 +2012,7 @@ box.insertAdjacentHTML('afterbegin', `
 </div>
 `);
 // =========================================================
-//  LOGIKA CACHE-FIRST + ERROR HANDLING
+//  LOGIC CACHE-FIRST + ERROR HANDLING
 // =========================================================
 const analysisRowEl = tr.nextElementSibling;
 if (analysisRowEl && domain) {
@@ -2060,27 +2052,27 @@ if (analysisRowEl && domain) {
 
 	  console.warn('[ANALYSIS] Connection error:', err);
       
-      //  GLOBALNY STATUS BŁĘDU POŁĄCZENIA
+      //  GLOBAL CONNECTION ERROR STATUS
       const panelHeader = analysisRowEl.querySelector('.analysis-panel-h');
       if (panelHeader) {
-        // Sprawdź czy już nie ma statusu
+        // Check if the status is already there
         if (!panelHeader.querySelector('.analysis-global-error')) {
           const errorSpan = document.createElement('span');
           errorSpan.className = 'analysis-global-error';
-          errorSpan.textContent = 'brak połączenia';
+          errorSpan.textContent = 'Connection failed';
           panelHeader.appendChild(errorSpan);
         }
       }
       
-      //  IP - SPECJALNY STATUS
+      //  IP - SPECIAL STATUS
       const ipTd = analysisRowEl.querySelector('.analysis-ip');
       if (ipTd) {
         ipTd.classList.remove('analysis-loading');
         ipTd.classList.add('error');
-        ipTd.innerHTML = '<span class="text-danger"> błąd połączenia</span>';
+        ipTd.innerHTML = '<span class="text-danger">Connection failed</span>';
       }
       
-      //  Reszta pól zostaje "—" (już jest domyślnie)
+      //  The remaining fields remain "—" (this is already the default)
       const homeList = analysisRowEl.querySelector('.analysis-home-list');
       const extList = analysisRowEl.querySelector('.analysis-external-list');
       if (homeList) homeList.innerHTML = '—';
@@ -2145,7 +2137,7 @@ document.addEventListener('click', (e) => {
 
       idle(() => {
         setTimeout(() => {
-          // ✅ Przekaż aktualną generację
+          // Pass on the current generation
           refreshVisibleTitleStatus(tbody, CURRENT_GENERATION);
         }, 300);
       });
@@ -2169,11 +2161,11 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
 
-  // znajdź wiersz analizy
+  // Find the analysis row
   const analysisRow = btn.closest('.analysis-row');
   if (!analysisRow) return;
 
-  // wiersz domeny jest TUŻ NAD analizą
+  // The domain row is RIGHT ABOVE the analysis.
   const domainRow = analysisRow.previousElementSibling;
   if (!domainRow) return;
 
@@ -2197,17 +2189,17 @@ document.addEventListener('click', (e) => {
   const analysisBox = btn.closest('.analysis-box');
   if (!analysisBox) return;
 
-  // Toggle klasy CSS (robi całą magię)
+  // Toggle CSS classes (this is where the magic happens)
 const collapsed = analysisBox.classList.toggle('collapsed');
 
-//  WYMUSZENIE PRZELICZENIA SCROLL LOCK
+//  FORCE SCROLL LOCK RECALCULATION
 if (window.__FAST_SCROLL_LOCK__) {
   requestAnimationFrame(() => {
     window.__FAST_SCROLL_LOCK__.applyScrollState();
   });
 }
 
-//  KOREKTA SCROLLA JEŚLI STRONA SIĘ SKRÓCIŁA
+//  SCROLL ADJUSTMENT IF THE PAGE HAS SHRUNK
 requestAnimationFrame(() => {
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
   if (window.scrollY > maxScroll) {
@@ -2220,7 +2212,7 @@ requestAnimationFrame(() => {
 
 
   
-  // Zmiana ikony i tytułu
+  // Changing the icon and title
   const icon = btn.querySelector('i');
   if (icon) {
     if (collapsed) {
@@ -2258,7 +2250,7 @@ initFastTable();
 
 // ─────────────────────────────────────────────
 // VISIBILITY / FOCUS — UI REFRESH ONLY
-// Nie przerywamy aktywnego fetch.
+// We do not interrupt an active fetch.
 // ─────────────────────────────────────────────
 document.addEventListener("visibilitychange", () => {
 
@@ -2283,7 +2275,7 @@ window.addEventListener("focus", () => {
   });
 });
 // =========================================================
-//  AUTO FAST ON — po 500ms bezczynności (INTELIGENTNY)
+// AUTO FAST ON — after user inactivity
 // =========================================================
 (function autoFastAfterIdle() {
   let timer = null;
@@ -2302,7 +2294,7 @@ window.addEventListener("focus", () => {
     if (Date.now() < AUTO_FAST_SUPPRESS_UNTIL) return;
     if (FAST_ALREADY_RAN && !API_FAST_ENABLED) return;
 
-    // ❌ nie uzbrajaj auto-API od ruchu związanego z paginacją
+    //  do not trigger the auto-API for traffic related to pagination
     if (ev && isPagerInteractionTarget(ev.target)) return;
 
     clearTimeout(timer);
@@ -2349,7 +2341,7 @@ window.addEventListener("focus", () => {
     clearTimeout(timer);
   }
 
-  // ✅ usuwamy mousemove, bo to on najczęściej odpalał konflikt przed kliknięciem
+  // We are removing `mousemove`, as it was the most frequent cause of conflicts occurring before a click.
   ['keydown', 'wheel', 'touchstart', 'pointerdown'].forEach(evt => {
     document.addEventListener(evt, arm, { passive: true });
   });
@@ -2365,7 +2357,7 @@ window.addEventListener("focus", () => {
   };
 })();
 
-// cache nazw krajów (wydajność)
+// country name cache (performance)
 const _countryNameCache = {};
 
 function countryLabelForTld(tld) {
@@ -2413,7 +2405,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // zachowaj aktualne parametry URL
+      // preserve current URL parameters
       const params = new URLSearchParams(window.location.search);
 
       menu.innerHTML = entries.map(([cc, count]) => {
@@ -2425,7 +2417,7 @@ tld = tld
   .trim();
         let flagCode = tld === "uk" ? "gb" : tld;
 
-//  CRITICAL FIX — usuń wszystkie niedozwolone znaki CSS selector
+//  CRITICAL FIX — remove all disallowed characters from the CSS selector
 flagCode = String(flagCode)
   .replace(/[^a-z0-9\-]/gi, '')
   .trim();
@@ -2448,7 +2440,7 @@ flagCode = String(flagCode)
           </li>`;
       }).join("");
 
-      //  AKTYWACJA TOOLTIPÓW (KLUCZOWE)
+      //  ACTIVATING TOOLTIPS (KEY)
       const tooltipTriggerList = menu.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltipTriggerList.forEach(el => {
         //new bootstrap.Tooltip(el);
@@ -2499,7 +2491,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // sort DESC by months
       rows.sort((a, b) => b.months - a.months);
 
-      // infinite-like chunk (jak było)
+      // Load entries in chunks
       const chunkSize = 500;
       let loaded = 0;
 
@@ -2559,15 +2551,15 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("/static/csv/categories.csv")
     .then(r => r.text())
     .then(txt => {
-      // Parsowanie CSV: MainCategory, Sub1, Sub2...
+      // Parsing CSV: MainCategory, Sub1, Sub2...
       const rows = txt.trim().split(/\r?\n/).slice(1);
       const tree = {};
 
       rows.forEach(line => {
-        // splitowanie po przecinku
+        // splitting by comma
         const parts = line.split(",");
         const main = parts[0].trim();
-        // reszta to subkategorie
+        // the rest are subcategories
         const subs = parts.slice(1).map(s => s.trim()).filter(Boolean);
 
         if (main) {
@@ -2575,15 +2567,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Budowanie HTML
+      // Building HTML
       menu.innerHTML = Object.entries(tree).map(([main, subs]) => {
-        // Jeśli nie ma podkategorii - zwykły link
+        // If there is no subcategory – a regular link
         if (!subs || subs.length === 0) {
           return `<li><a class="dropdown-item" href="?q=${main}">${main}</a></li>`;
         }
 
-        // Jeśli są podkategorie - submenu
-        // Dodano: class="dropdown-toggle" i href="#"
+        // If there are subcategories – a submenu
+        // Added: class="dropdown-toggle" and href="#"
         return `
           <li class="dropdown-submenu">
             <a class="dropdown-item dropdown-toggle d-flex justify-content-between align-items-center" href="#">
@@ -2597,7 +2589,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </li>`;
       }).join("");
 
-      // Uruchomienie "Inteligentnego pozycjonowania" (żeby nie uciekało za ekran w prawo)
+      // Enable "Smart positioning" (to prevent it from moving off-screen to the right)
       
     })
     .catch(err => {
@@ -2615,15 +2607,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return !!el.closest('.dropdown-menu, .dropdown-item, .dropdown');
   }
 
-  // 1) Middle click (wheel click) – największy problem
+  // 1) Middle click (wheel click) – the biggest problem
   document.addEventListener('auxclick', function (e) {
-    if (e.button !== 1) return;                 // tylko środkowy
-    if (!isInsideDropdown(e.target)) return;    // tylko dropdowny
+    if (e.button !== 1) return;                 // only the middle one
+    if (!isInsideDropdown(e.target)) return;    // only dropdowns
     e.preventDefault();
     e.stopPropagation();
   }, true);
 
-  // 2) Czasem przeglądarka reaguje już na mousedown
+  // 2) Sometimes the browser responds as early as the mousedown event.
   document.addEventListener('mousedown', function (e) {
     if (e.button !== 1) return;
     if (!isInsideDropdown(e.target)) return;
@@ -2631,11 +2623,11 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation();
   }, true);
 
-  // 3) Ctrl+klik / Cmd+klik (też otwiera nową kartę) – opcjonalnie blokujemy w dropdownach
+  // 3) Ctrl+click / Cmd+click — optionally blocked in dropdowns
   document.addEventListener('click', function (e) {
     if (!isInsideDropdown(e.target)) return;
     if (!(e.ctrlKey || e.metaKey)) return;      // ctrl / cmd
-    // jeśli kliknięto w link dropdowna
+    // if the dropdown link was clicked
     const a = e.target.closest('a.dropdown-item, .dropdown-menu a');
     if (!a) return;
     e.preventDefault();
@@ -2644,7 +2636,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 })();
 
-// Zarządzanie scrollem strony - FINALNA WERSJA
+// Managing page scrolling - FINAL VERSION
 (function() {
   let isLocked = false;
   let rafPending = false;
@@ -2660,11 +2652,11 @@ function lockScroll() {
     isLocked = false;
   }
 
-  //  logika: jeśli jest rozwinięta analiza LUB content wyższy niż viewport → odblokuj
+  //  logic: if there is expanded analysis OR content higher than viewport → unlock
 function shouldUnlock() {
   return true;
 }
-  //  POPRAWIONY GUARD - niezależne warunki dla obu przejść
+  //  CORRECTED GUARD – independent conditions for both transitions
   function applyScrollState() {
     if (IS_PAGE_LOADING || isSwitching) return;
 
@@ -2679,7 +2671,7 @@ function shouldUnlock() {
     }
   }
 
-  // 🎬 Debounce przez requestAnimationFrame (1 klatka)
+  //  Debounce via requestAnimationFrame (1 frame)
   function applyScrollStateDebounced() {
     if (rafPending) return;
     rafPending = true;
@@ -2689,7 +2681,7 @@ function shouldUnlock() {
     });
   }
 
-  // ── Automaty: MutationObserver + ResizeObserver ──
+  // Automatic observers: MutationObserver + ResizeObserver
 
 let mo = null;
 let ro = null;
@@ -2718,10 +2710,10 @@ function stopObservers() {
   }
 }
 
-  // 3) resize okna
+  // 3) resize window
   window.addEventListener('resize', applyScrollStateDebounced);
 
-  //  POPRAWIONY START - używamy debounced wersji
+  //  IMPROVED START - we use a debounced version
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     startObservers();
@@ -2732,7 +2724,7 @@ if (document.readyState === 'loading') {
   applyScrollStateDebounced();
 }
 
-  // ręczny dostęp + kontrola observerów
+  // manual access + observer control
   window.__FAST_SCROLL_LOCK__ = {
     lockScroll,
     unlockScroll,
