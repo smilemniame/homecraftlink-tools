@@ -13,7 +13,9 @@ HomeCraftLink helps you explore websites, collect images, and extract text for r
 
 ## Repository status
 
-The first demo is available: [HomeCraftLink Table Demo](table-demo/README.md), with synthetic sample data, setup instructions and validation notes. More tools and individual usage instructions will be added gradually.
+This repository contains a runnable [HomeCraftLink Table Demo](table-demo/README.md) with synthetic sample data, setup instructions and validation notes; six [browser bookmarklets](bookmarklets/README.md); and usage guides for the importers, slideshow, HTML editor, video player and globe.
+
+The table demo is the included local application. The other guides describe features of the live HomeCraftLink website; their complete application code and backend services are not bundled here.
 
 ## Working with live content
 
