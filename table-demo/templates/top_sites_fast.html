@@ -73,13 +73,13 @@
 	#fastTable tbody tr:nth-child(even) td {
 		background: #0e0e0e !important;
 	}
-	/* hover całkowicie wyłączony */
+	/* Hover highlighting disabled */
 	#fastTable tbody tr:hover,
 	#fastTable tbody tr:hover td,
 	.analysis-row table tbody tr:hover {
 		background: #111111 !important;
 	}
-	/* analysis row ma własne tło */
+	/* Analysis row has its own background */
 	.analysis-row td {
 		background: #252525 !important;
 	}
@@ -439,7 +439,7 @@
 	#globalWordsDropdownMenu { max-height: 61vh; overflow-y: auto; }
 	#rankDateMenu { max-height: 61vh; overflow-y: auto; }
 
-	/* word items z licznikami */
+	/* Word items with counts */
 	.dropdown-item.word-item {
 		display: flex;
 		justify-content: space-between;
@@ -454,16 +454,16 @@
 	}
 
 	/* ================================
-	   CATEGORIES — LEWA STRZAŁKA + SUBMENU
+	   CATEGORIES — LEFT ARROW + SUBMENU
 	================================ */
 	#categoriesDropdownMenu {
 		position: relative;
 		overflow: visible !important;
 		font-size: 0.85rem;
 	}
-	/* ukryj bootstrapową strzałkę */
+	/* Hide the Bootstrap arrow */
 	#categoriesDropdownMenu .dropdown-toggle::after { display: none !important; }
-	/* własna strzałka po lewej */
+	/* custom arrow on the left */
 	#categoriesDropdownMenu .dropdown-toggle {
 		position: relative;
 		padding-left: 1.4rem;
@@ -480,7 +480,7 @@
 	}
 	#categoriesDropdownMenu .dropdown-toggle:hover::before { opacity: 1; }
 
-	/* submenu zawsze po lewej */
+	/* Always display the submenu on the left */
 	#categoriesDropdownMenu .dropdown-submenu {
 		position: static;
 	}
@@ -593,7 +593,7 @@
 	}
 
 	/* ================================
-	   UKRYTE ELEMENTY
+	  HIDDEN ELEMENTS
 	================================ */
 	.api-toggle-btn { display: none !important; }
 	label[for="per_page_top"],
@@ -604,7 +604,7 @@
 	}
 
 	/* ================================
-	   IKONKI COPY/EXPORT
+	   COPY / EXPORT ICONS
 	================================ */
 	#copySelectedFast {
 		background: transparent !important;
@@ -876,9 +876,9 @@
 <div class="px-1 py-2">
   <form method="post"
         class="d-flex align-items-center gap-1 fast-search-bar"
-        onsubmit="this.querySelector('input[name=page]')?.value=1">
+        onsubmit="const pageInput = this.querySelector('input[name=page]'); if (pageInput) pageInput.value = '1';">
 
-    <!-- reset paginacji -->
+    <!-- Reset pagination -->
     <input type="hidden" name="page" value="1">
 
 <div class="input-group input-group-sm">
@@ -940,18 +940,18 @@
 
         <!-- HEADER 
         <div class="card-header bg-white">
-            <h5 class="mb-0">Ranking Domen (Fast Mode)</h5>
+            <h5 class="mb-0">Domain Ranking (Fast Mode)</h5>
         </div> -->
 
 <!-- ───────────────── TOP PAGER ───────────────── -->
 <div class="border-top border-bottom py-2 px-0" data-pager>
     <div class="d-flex align-items-center px-1">
-        <!-- LEFT - może sobie "pływać", nie wpływa na nawigację -->
+        <!-- LEFT — flexible layout, independent of navigation -->
         <div class="pager-left-slot d-flex align-items-center gap-2">
             <!-- Rows selector -->
             <form method="post" class="d-flex align-items-center gap-1 m-0">
                 <input type="hidden" name="page" value="1">
-                <label for="per_page_top" class="small text-muted">Wiersze:</label>
+                <label for="per_page_top" class="small text-muted">Rows:</label>
                 <select
                     name="per_page"
                     id="per_page_top"
@@ -995,9 +995,9 @@
             </span>
         </span>
 
-        <!-- RIGHT - teraz pełni rolę "kotwicy" z pager-jump -->
+        <!-- RIGHT — contains the page jump controls -->
         <div class="pager-right-slot d-flex align-items-center gap-2 ms-auto">
-            <!-- PAGE JUMP - teraz relatywny do prawej strony -->
+            <!-- PAGE JUMP — aligned to the right -->
 			
 <div class="pager-jump me-3">
 
@@ -1038,7 +1038,7 @@
 <button
   type="button"
   class="btn btn-sm btn-outline-danger api-toggle-btn"
-  title="Włącz / wyłącz pobieranie statusu i tytułu"
+  title="Enable / disable status and title fetching"
 >
   API: OFF
 </button>					
@@ -1059,7 +1059,7 @@
 		
         <div class="table-responsive">
             <table id="fastTable" class="table align-middle mb-0">
-                <!-- Colgroup dla stabilnej geometrii -->
+                <!-- Colgroup for stable column widths -->
                 <colgroup>
                     <col style="width:32px">   <!-- checkbox -->
                     <col style="width:80px">   <!-- rank -->
@@ -1078,12 +1078,15 @@
                         </th>
                         <!-- Rank -->
                         <th class="rank-col text-center">#</th>
-                        <!-- Domena -->
+                        <!-- Domain -->
                         <th>Domain</th>
-                        <!-- Tytuł -->
+                        <!-- Title -->
                         <th>Title</th>
-                        <!-- Analiza (chevron) -->
-                        <th class="text-center">🔍</th>
+                        <!-- Analysis (chevron) -->
+                        <th class="text-center">
+						    <i class="bi bi-search" aria-hidden="true"></i>
+						    <span class="visually-hidden">Analysis</span>
+						</th>
                         <!-- Status -->
                         <th class="text-center">Status</th>
                     </tr>
@@ -1092,7 +1095,7 @@
                 <tbody>
                     {% for row in rows %}
                     <tr data-domain="{{ row.domain }}">
-                        <!-- Checkbox wiersza -->
+                        <!-- Row checkbox -->
                         <td class="text-center">
                             <input type="checkbox"
                                    class="form-check-input row-check"
@@ -1105,7 +1108,7 @@
                             {{ row.rank }}
                         </td>
 
-                        <!-- Domena + favicon -->
+                        <!-- Domain + favicon -->
                         <td>
                             <a href="http://{{ row.domain }}" target="_blank"
                                class="fw-semibold d-inline-flex align-items-center gap-2">
@@ -1120,18 +1123,18 @@
                             </a>
                         </td>
 
-                        <!-- Tytuł (wczytywanie) -->
+                        <!-- Title (loading) -->
 <td class="title-cell loading" data-domain="{{ row.domain }}">
 </td>
 
 
-                        <!-- Przycisk analizy (chevron) -->
+                        <!-- Analysis button (chevron) -->
                         <td class="text-center">
 <button
   type="button"
   class="btn btn-sm analyze-btn"
   data-domain="{{ row.domain }}"
-  aria-label="Pokaż analizę"
+  aria-label="Show analysis"
 >
   <i class="bi bi-chevron-down"></i>
 </button>
@@ -1159,7 +1162,7 @@
             <div class="pager-left-slot">
                 <form method="post" class="d-flex align-items-center gap-1">
                     <input type="hidden" name="page" value="1">
-                    <label for="per_page_bottom" class="small text-muted">Wiersze:</label>
+                    <label for="per_page_bottom" class="small text-muted">Rows:</label>
                     <select
                         name="per_page"
                         id="per_page_bottom"
@@ -1184,7 +1187,7 @@
             </div>
         </div>
 
-        <!-- RIGHT - taka sama struktura jak w TOP PAGER -->
+        <!-- RIGHT — same structure as the top pager -->
         <div class="pager-right-slot d-flex align-items-center gap-2 ms-auto">
 		
 <div class="pager-jump me-3">
