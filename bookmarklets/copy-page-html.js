@@ -1,1 +1,2 @@
 javascript:void (async()=>{try{const text=document.documentElement.outerHTML;const label='Rendered page HTML (DOM), '+text.length+' characters';await navigator.clipboard.writeText(text);alert('Copied to clipboard: '+label+'. Paste with Ctrl+V.');}catch(e){console.error(e);alert('Copy failed: '+e.message+'. Check clipboard permission and keep this tab active, then try again.');}})();
+
