@@ -11,6 +11,22 @@ HomeCraftLink helps you explore websites, collect images, and extract text for r
 - **Gate 3:** Extract text, read it aloud and translate passages.
 - **HTML Editor:** Work with page source and the current DOM.
 
+## Illustrated guide and examples
+
+Read the [HomeCraftLink — Quick Visual Guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html) for screenshots and examples of all the tools described below. The Gate 1, Gate 2 and Gate 3 sections also include buttons you can try directly on the guide.
+
+- [Domain table demo](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-1)
+- [Monthly snapshots and filters](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-2)
+- [Gate 1 / Importer 1 — collect links](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-3)
+- [Inspect a domain](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-4)
+- [Gate 2 / Importer 2 — collect images](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5)
+- [Slideshow](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-6)
+- [Gate 3 / Importer 3 — text, reading and translation](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-7)
+- [HTML editor](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-8)
+- [Six bookmarks — two ways to work](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-9)
+- [Video.js — local video and audio](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-10)
+- [Interactive globe](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-11)
+
 ## Repository status
 
 This repository contains a runnable [HomeCraftLink Table Demo](table-demo/README.md) with synthetic sample data, setup instructions and validation notes; six [browser bookmarklets](bookmarklets/README.md); and usage guides for the importers, slideshow, HTML editor, video player and globe.
