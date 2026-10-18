@@ -2,6 +2,11 @@
 
 Importer 1 turns pasted links or a text file into a domain list that you can review, select, copy and export. This guide describes the full HomeCraftLink interface; Importer 1 is not bundled as a working feature in the table demo.
 
+## Illustrated examples
+
+- [Collect links from the visual guide and see the Gate 1 result](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-3). This section includes a button you can try directly on the guide.
+- [Inspect a domain: illustrated analysis example](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-4).
+
 ## Add domains
 
 1. Open the green Gate 1 panel.
@@ -10,6 +15,21 @@ Importer 1 turns pasted links or a text file into a domain list that you can rev
 4. Review the imported domains and available titles and status results.
 
 The input field is cleared after a successful import. The imported table remains visible. The current implementation limits input to 2,000,000 characters, files to 5 MiB and extracted domain lists to 10,000 entries.
+
+## Add more links to the same list
+
+You can collect links from several source pages into one Gate 1 list without clearing its earlier results:
+
+1. Keep the HomeCraftLink tab containing your current Gate 1 results open.
+2. On another source page, run the copy-only **Links** bookmark. After successful copying, return to that same HomeCraftLink tab.
+3. Open Gate 1 if its panel is collapsed and paste into its input field with **Ctrl+V**. Pasting starts the next import automatically.
+4. Repeat for further pages, then review and select domains from the combined list.
+
+Each import merges the extracted domains with the existing list, removes duplicate domain entries and sorts the combined list alphabetically. Several different URLs can resolve to the same domain entry. For example, if the list already contains `example.com` and the next paste contains `example.com` and `example.org`, the combined list contains those two domains once each.
+
+**A new import clears the current checkbox selections, while keeping the accumulated domain list.** Finish collecting before making your final selection for copying or CSV export. The clipboard holds only the most recent successful copy; the importer performs the accumulation.
+
+Use **Clear importer** (the trash icon) when you want a separate list. Keep using the same open tab for accumulation; numbered bookmark 1 opens a new importer tab. Do not rely on the list surviving a page reload or closing the tab.
 
 ## Review and select
 
@@ -39,7 +59,7 @@ If clipboard access is unavailable or denied, follow the browser prompt and try 
 
 ## Collect links with bookmark 1
 
-Drag the bookmarklet marked 1 to your browser's bookmarks bar. On a source page, activate that bookmark to collect its HTTP/HTTPS links and open Importer 1. The importer attempts to read and import the copied links automatically. If automatic clipboard reading is blocked, paste manually into the input field with Ctrl+V.
+Install the [numbered bookmark 1](../bookmarklets/open-importer-1.js) on your bookmarks bar, or drag a fresh bookmark 1 button from HomeCraftLink. Run it on a source page to collect HTTP/HTTPS links. It opens Gate 1 in a new tab and transfers the links directly for automatic import, without using the clipboard. Keep the source page open until the import finishes. If the popup is blocked, allow it for the source page and run the bookmark again. For adding links to a Gate 1 tab you already have open, use the copy-only Links bookmark described below.
 
 The imported result is a domain list; it should not be treated as a complete archive of all pages on the source website.
 
@@ -65,7 +85,7 @@ The supplied commons.wikimedia.org example shows 289 Home links and 402 External
 
 ## Documentation scope
 
-This guide is based on the owner's supplied `top_sites.html`, `main.20250720.js` and Importer 1 screenshot reviewed on 14 October 2026. It documents the inspected frontend behavior; no new end-to-end importer test was performed for this documentation.
+This guide covers the inspected HomeCraftLink frontend. The accumulation, duplicate handling and selection-reset notes were checked against the updated `main.20250720.js`; the numbered bookmark 1 description follows the current direct-transfer implementation. This documentation update did not include a new end-to-end browser test of accumulation. Importer 1 is not included as a runnable feature in the table demo.
 
 The Open quicklinks and Download quicklinks controls are visible in the HTML, but their handlers were not found in the supplied JavaScript. Their behavior is outside the scope of this guide. The separate dropdown training example is not part of Importer 1 documentation.
 
