@@ -5,12 +5,18 @@ Importer 3 (Gate 3 / Text & Audio Importer) turns pasted page HTML into editable
 ## Quick start
 
 1. Open a source article and let it load.
-2. Run your saved bookmark 3 to copy the page HTML and open Gate 3. If automatic pasting is blocked, click the input field and press Ctrl+V.
+2. Run your saved [numbered bookmark 3](../bookmarklets/open-importer-3.js). It opens Gate 3 in a new tab, fetches the source page HTML and transfers it directly for text extraction, without clipboard permission or Ctrl+V. Keep the source page open until the import finishes.
 3. Review the extracted text and remove anything you do not need.
 4. Click **Read** to listen. Select a passage first to read only that passage.
 5. Choose a target language and click **Translate**. You can read, copy or save the result.
 
 You can also paste plain text or use **Load TXT**. HTML extraction runs when HTML is pasted; typing plain text does not require extraction.
+
+## Illustrated example: try it on the guide
+
+[Run bookmark 3 on the visual guide and see the extracted text in Gate 3](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-7). The section includes a button you can run directly on the guide and a screenshot of the result. The illustrated capture contains 20,886 characters; this is an example count, not a fixed expected result. Reading starts when you click **Read**.
+
+For other websites, install numbered bookmark 3 from the code linked above, or drag a fresh bookmark 3 button from HomeCraftLink onto your bookmarks bar. Replace older saved copies to use the current direct-transfer version. Bookmark 3 fetches the page source rather than the live DOM modified by scripts; extracted content can therefore differ from what is currently visible on the page.
 
 ## Example: NASA Space Place
 
@@ -75,7 +81,7 @@ The complete workflow should not be described as wholly offline or as processing
 
 ## Troubleshooting
 
-- **Nothing pasted automatically:** focus Gate 3's input and press Ctrl+V. Clipboard access may need browser permission.
+- **Automatic import did not finish:** check the message in the importer and any alert on the source page. Keep the source page open. If the new tab was blocked, allow popups for the source site and run bookmark 3 again. The automatic bookmark does not put a fallback copy on the clipboard. If fetching the source fails or its content is unsuitable, run the copy-only [DOM bookmark](../bookmarklets/copy-page-html.js) on the source page, then return to Gate 3 and paste with Ctrl+V. Clipboard permission applies to that separate copy-only action.
 - **Extraction error or unwanted text:** try plain text instead, or edit the extracted result. Page structure and loaded content affect extraction.
 - **Translation unavailable:** check the displayed message. Chrome's Translator API, a language pair or a required model may be unavailable on that device.
 - **Wrong reading language:** choose the language matching the visible text and restart reading.
