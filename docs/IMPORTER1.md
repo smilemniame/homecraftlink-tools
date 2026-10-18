@@ -1,4 +1,4 @@
-# Gate 1 / Importer 1 — domain lists
+# Gate 1 / Importer 1 — domain lists 
 
 Importer 1 turns pasted links or a text file into a domain list that you can review, select, copy and export. This guide describes the full HomeCraftLink interface; Importer 1 is not bundled as a working feature in the table demo.
 
