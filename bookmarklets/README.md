@@ -2,15 +2,15 @@
 
 Six browser bookmarks connect the page you are viewing with the [HomeCraftLink importers](https://homecraftlink.com/top_sites).
 
-**1, 2 and 3 open the corresponding importer. Links, DOM and Source copy content to the clipboard for you to paste manually.**
+**1, 2 and 3 open the corresponding importer and transfer data directly, without using the clipboard. Links, DOM and Source copy content to the clipboard for you to paste manually.**
 
 ## Choose a bookmarklet
 
 | Bookmark name | Code file | What it collects | What happens next |
 | --- | --- | --- | --- |
-| **1** | [open-importer-1.js](open-importer-1.js) | Unique HTTP/HTTPS link addresses from the current page DOM. | Opens Importer 1 and copies the links to the clipboard. |
-| **2** | [open-importer-2.js](open-importer-2.js) | Current HTML from the page's `#search` element when present, otherwise its body. | Opens Importer 2 and attempts to transfer HTML directly. A clipboard fallback is available if transfer is not acknowledged. |
-| **3** | [open-importer-3.js](open-importer-3.js) | HTML fetched again from the current page URL. | Attempts to copy the HTML, then opens Importer 3 for text extraction and audio work. |
+| **1** | [open-importer-1.js](open-importer-1.js) | Unique HTTP/HTTPS link addresses from the current page DOM. | Opens Gate 1 and transfers links directly for automatic domain import. |
+| **2** | [open-importer-2.js](open-importer-2.js) | Current HTML from the page's `#search` element when present, otherwise its body. | Opens Gate 2 and transfers HTML directly for image and resource extraction. |
+| **3** | [open-importer-3.js](open-importer-3.js) | HTML fetched again from the current page URL. | Opens Gate 3 immediately, then transfers the fetched HTML for text extraction. |
 | **Links** | [copy-links.js](copy-links.js) | Unique HTTP/HTTPS link addresses. | Copies the links; paste them into Importer 1. |
 | **DOM** | [copy-page-html.js](copy-page-html.js) | The current document HTML, including changes already made by page scripts. | Copies the HTML; paste it into the appropriate HTML input in Importer 2 or 3. |
 | **Source** | [copy-page-source.js](copy-page-source.js) | HTML fetched again from the current page URL. | Copies the HTML; paste it into the appropriate HTML input in Importer 2 or 3. |
@@ -40,14 +40,23 @@ The file link on GitHub opens the code. It does not install the bookmarklet. Kee
 
 ## Use the bookmarks
 
-1. Open the source website and navigate to the content you want to collect.
-2. Choose **1 / Links** for link addresses, **2** for images and resources from the current page HTML, or **3** for readable text from fetched HTML.
-3. Click the saved bookmark on your bookmarks bar while the source page is active.
-4. Allow clipboard access or the importer popup if the browser requests it.
-5. In the importer, check that the expected content arrived. If the input is empty and copying succeeded, click its paste/input area and press **Ctrl+V**.
-6. Review the result before selecting, exporting, editing or reading it aloud.
+### Automatic transfer: 1, 2 and 3
 
-For **Links, DOM and Source**, open the importer yourself after copying and paste with **Ctrl+V**. Each successful copy replaces the current clipboard contents.
+1. Open the source website and navigate to the content you want to collect. Load any images or text you need before running the bookmark.
+2. Click **1** for link addresses, **2** for images and resources from the current page HTML, or **3** for text extracted from fetched HTML.
+3. The corresponding Gate opens in a new HomeCraftLink tab. Allow the popup if your browser blocks it, then run the bookmark again.
+4. Keep the source page open until the import finishes. The numbered bookmarks transfer data directly; clipboard permission and Ctrl+V are not needed for this transfer.
+5. Check the import status and review the result before selecting, exporting, editing or reading it aloud. Gate 3 playback starts when you press Play.
+
+If you installed an older numbered bookmark, replace its saved URL with the current code or drag a fresh button from HomeCraftLink onto your bookmarks bar. Updating the repository does not update bookmarks already saved in your browser.
+
+### Manual copying: Links, DOM and Source
+
+1. On the source page, click **Links** for link addresses, **DOM** for the current document HTML, or **Source** for freshly fetched HTML.
+2. Allow clipboard access if the browser requests it. If copying fails, resolve the reported problem before pasting; your clipboard may still contain earlier content.
+3. Open HomeCraftLink or switch to an existing HomeCraftLink tab. These three bookmarks do not open it automatically.
+4. Open Gate 1 for Links, or the appropriate HTML input in Gate 2, Gate 3 or the HTML editor for DOM/Source, then paste with **Ctrl+V**.
+5. Check and review the imported content. Each successful copy replaces the current clipboard contents.
 
 **Choose the bookmarklet to match the content you need.** A page may return some data even when you choose an unsuitable bookmarklet; that alone does not mean you collected the intended material.
 
@@ -63,14 +72,22 @@ Neither method packages the complete website with all its images, stylesheets an
 
 ## If something does not arrive
 
-- **Importer does not open:** check popup permissions. Bookmarklet 3 opens its tab after an asynchronous fetch/copy attempt, which some browser settings may block. You can open Importer 3 manually.
-- **Importer opens with an empty input:** check clipboard permission, return to the source page and run the bookmarklet again. Paste with Ctrl+V if the content is in the clipboard. An opened importer alone does not confirm a successful copy.
-- **Importer 2 does not receive HTML automatically:** allow its transfer attempt to finish. Its fallback attempts to copy HTML after about 10 seconds without acknowledgement; then paste manually. Alternatively, use DOM.
+- **Importer does not open:** allow popups for the source website and run the numbered bookmark again. All three numbered bookmarks open the importer tab before waiting for transfer or fetching to finish.
+- **Automatic import does not finish:** keep the source page open and check the status in the importer tab. If the source reports that transfer was not confirmed, check whether data arrived before trying again. The numbered bookmarks do not copy a fallback into the clipboard.
+- **You need a manual alternative:** use Links for Gate 1, or DOM/Source for an HTML input in Gate 2 or Gate 3, then paste with Ctrl+V. Clipboard permissions apply to this separate copying step.
 - **Links are missing or unrelated:** confirm you ran the bookmarklet on the intended page and that the links were already loaded. Menus and other additional links may also be collected.
 - **Source misses visible content:** try DOM and paste the captured HTML manually. A fresh response may contain less than the rendered page.
 - **Nothing happens on a special browser page:** try an ordinary HTTP/HTTPS website. Browser internal pages, extension pages and some restricted documents do not permit bookmarklets to operate normally.
 
-Clipboard access, page restrictions and browser permissions can affect the result. Bookmark names can be edited locally; names and messages written into the code are not automatically translated by the browser.
+Page restrictions, popup settings and browser permissions can affect the result. Clipboard permissions apply to the copy-only bookmarks and to copying results from the tools. Bookmark names can be edited locally; names and messages written into the code are not automatically translated by the browser.
+
+## Illustrated examples
+
+See the [six bookmarks overview](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-9) in the visual guide, or try the numbered bookmarks directly on the guide:
+
+- [Gate 1: collect links and build a domain list](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-3)
+- [Gate 2: collect and preview images](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5)
+- [Gate 3: extract, read and translate text](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-7)
 
 ## Detailed guides
 
