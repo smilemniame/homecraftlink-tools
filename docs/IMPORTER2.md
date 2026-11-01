@@ -41,6 +41,18 @@ The importer examines links, image sources, lazy-loading attributes, inline back
 
 Image counts and previews depend on loading results and may change. The illustrated guide includes examples captured at different times: one shows 89 image entries; the direct-transfer example shows 88 resources, including 38 image entries. These are example counts, and image entries can include size variants of the same picture.
 
+## Practical image collection tips
+
+**For precise results, collect selected image addresses individually.** On a source page, right-click an image, choose **Copy image address**, then paste its URL into Gate 2. Repeat for the pictures you actually want. This helps avoid unrelated icons, logos, thumbnails and duplicate sizes often present in bulk page imports.
+
+**For a larger collection, use bookmark 2 or DOM.** Numbered bookmark **2** opens a new Gate 2 tab and transfers page HTML directly, without the clipboard. The copy-only **DOM** bookmark uses the clipboard and is useful when adding further pages to an existing Gate 2 list. Availability and results depend on the source page.
+
+**Review before export.** You can select all matching entries and then uncheck unwanted ones. Use the Slideshow to compare images; its displayed item numbers can help you find unwanted small thumbnails or alternate sizes in the importer list. Review the selection again after changing filters or adding pages.
+
+**Keep very large wallpaper collections manageable.** High-resolution images may use substantial browser memory and slow down or freeze a tab. Around 1 GB of memory use is a reason to review the batch size, not a universal browser limit. Prefer smaller batches or individual addresses when needed.
+
+**Respect source restrictions.** An image URL may stop working or may not permit republication. Only reuse images when you have the necessary rights; import or extraction does not grant permission.
+
 ## Add images from several pages to the same list
 
 1. Keep the HomeCraftLink tab containing your Gate 2 results open.
