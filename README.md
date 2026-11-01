@@ -11,6 +11,16 @@ HomeCraftLink helps you explore websites, collect images, and extract text for r
 - **Gate 3:** Extract text, read it aloud and translate passages.
 - **HTML Editor:** Work with page source and the current DOM.
 
+## Start here
+
+New to HomeCraftLink? Begin with the illustrated guide to see what the tools can do before exploring the detailed documentation.
+
+- **[Explore the visual guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html)** — screenshots and hands-on examples.
+- **[Try Gate 2 image collection](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5)** — collect, preview and select images.
+- **Create your own Blogger image gallery** — step-by-step example coming soon.
+
+No programming experience is required to try the live tools.
+
 ## Illustrated guide and examples
 
 Read the [HomeCraftLink — Quick Visual Guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html) for screenshots and examples of all the tools described below. The Gate 1, Gate 2 and Gate 3 sections also include buttons you can try directly on the guide.
