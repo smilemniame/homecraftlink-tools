@@ -40,9 +40,9 @@ Use the bookmark matching the content you want. The result can include menus, ca
 
 | Bookmark | Purpose | What happens next |
 | --- | --- | --- |
-| 1 | Collect links for Importer 1. | Opens the importer; follow its prompt and paste with Ctrl+V if needed. |
-| 2 | Collect page HTML for image extraction in Importer 2. | Opens the importer; follow its prompt and paste if needed. |
-| 3 | Collect page HTML for text extraction in Importer 3. | Opens the importer; follow its prompt and paste if needed. |
+| 1 | Collect links for Importer 1. | Opens Gate 1 in a new tab and transfers unique HTTP/HTTPS link addresses directly, without the clipboard or Ctrl+V. |
+| 2 | Collect page HTML for image extraction in Importer 2. | Opens Gate 2 in a new tab and transfers HTML from `#search` (when present) or the page body directly, without Ctrl+V. |
+| 3 | Collect page HTML for text extraction in Importer 3. | Opens Gate 3 in a new tab, fetches HTML from the page URL and transfers it directly, without Ctrl+V. |
 | Links | Copy unique HTTP/HTTPS links, one per line. | Stay on the source page; return to Importer 1 and paste manually. |
 | DOM | Copy the current document's HTML. | Stay on the source page; paste manually into the HTML editor or an HTML importer. |
 | Source | Fetch the current page URL again and copy the returned HTML. | Stay on the source page; paste manually into the HTML editor or an HTML importer. |
