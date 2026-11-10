@@ -17,7 +17,7 @@ New to HomeCraftLink? Begin with the illustrated guide to see what the tools can
 
 - **[Explore the visual guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html)** — screenshots and hands-on examples.
 - **[Try Gate 2 image collection](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5)** — collect, preview and select images.
-- **Create your own Blogger image gallery** — step-by-step example coming soon.
+- **[Create your own HTML image gallery](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5)** — use Gate 2 to generate a gallery with thumbnails, an interactive slideshow and autoplay controls.
 
 No programming experience is required to try the live tools.
 
