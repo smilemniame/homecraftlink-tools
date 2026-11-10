@@ -78,6 +78,21 @@ Image copying uses the dimensions returned by the selected URL; it does not guar
 
 Bulk copying clears the selection after successful copying. CSV export asks for a filename without the extension, suggesting `images`; cancelling the prompt cancels export. The selection clears after triggering the download. CSV contains addresses, not embedded image files.
 
+## Generate an HTML gallery with slideshow
+
+Gate 2 has a separate **HTML** action (**Generate HTML gallery**). Import and review image URLs, select the entries you want to include, then click **HTML** to generate gallery code for a standalone HTML page or a compatible site. This differs from **Slideshow selected**, which opens the HomeCraftLink viewer without creating a separate HTML gallery.
+
+The generated HTML page includes two stages:
+
+1. **Gallery grid:** a responsive grid of image thumbnails. Click any thumbnail to open the slideshow viewer.
+2. **Slideshow viewer:** a thumbnail strip, previous/next arrows, an image counter, a field to jump directly to an image number, fullscreen mode, zoom and **Open original**. Browse with the arrow keys or mouse wheel; hide or show the thumbnails as needed.
+
+**Automatic playback:** Move the vertical **Delay** slider to choose **1–60 seconds** between images. The remaining-time indicator counts down during playback. Set **Delay = 0** to turn autoplay off. Press **Esc** to close the viewer or **T** to toggle its thumbnail strip.
+
+**Important:** The generated gallery uses the Swiper library loaded from an external CDN. It references the original image URLs rather than uploading the pictures. Links may expire, source sites may restrict access and the host page may block external scripts. Check the result where you plan to publish it, and only reuse images when you have permission.
+
+See the [illustrated Gate 2 guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5) for screenshots of the **HTML** button, thumbnail grid and slideshow controls.
+
 ## External tools and slideshow
 
 Edit with AI and Store image open external service websites. They do not automatically upload or paste an image. Copy an image first, then paste or upload it in the chosen service.
