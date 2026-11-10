@@ -7,7 +7,7 @@ Tools, examples and documentation for [HomeCraftLink](https://homecraftlink.com/
 HomeCraftLink helps you explore websites, collect images, and extract text for reading aloud or translation.
 
 - **Gate 1:** Collect links and review website details.
-- **Gate 2:** Collect, preview and export images.
+- **Gate 2:** Collect, preview and export images, or generate a standalone HTML gallery with slideshow controls.
 - **Gate 3:** Extract text, read it aloud and translate passages.
 - **HTML Editor:** Work with page source and the current DOM.
 
@@ -57,7 +57,7 @@ See [Gate 1 / Importer 1 — domain lists](docs/IMPORTER1.md) for importing doma
 
 ## Importer 2 documentation
 
-See [Gate 2 / Importer 2 — images and resource URLs](docs/IMPORTER2.md) for collecting page HTML, browsing previews, copying images and exporting selected URLs.
+See [Gate 2 / Importer 2 — images and resource URLs](docs/IMPORTER2.md) for collecting and previewing images, copying and exporting URLs, and generating HTML galleries with interactive slideshows.
 
 ## Slideshow documentation
 
