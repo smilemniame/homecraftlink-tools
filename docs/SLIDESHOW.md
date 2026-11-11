@@ -12,6 +12,12 @@ From Gate 2 / Importer 2:
 
 The selected-address route reads `slideshow_selected` from session storage. It is a temporary browser handoff, not a permanent saved gallery or shareable image list. Opening the selected-mode page without that data displays a message that no selected images are available.
 
+## Slideshow selected vs generated HTML gallery
+
+**Slideshow selected** opens the HomeCraftLink slideshow with the selected image URLs passed through a temporary browser session. It does not create a standalone HTML gallery page.
+
+The separate **HTML / Generate HTML gallery** action in Gate 2 produces HTML for a gallery page with a thumbnail grid and an interactive slideshow viewer. That generated page does not use the temporary `slideshow_selected` session handoff. See [Importer 2](IMPORTER2.md) and the [illustrated Gate 2 guide](https://homecraftlink.blogspot.com/2026/10/homecraftlink-quick-visual-guide.html#hcl-nav-5) for usage and limitations.
+
 ## Controls
 
 | Control | What it does |
